@@ -1,0 +1,466 @@
+{% extends "cycletyres/base.html" %}
+{% load static %}
+
+{% block title %}Cycle Tyre Stock Dashboard{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<style>
+    /* Cycle Tyre Dashboard - Premium Black/White Theme */
+    .dashboard-container {
+        padding: 20px 0;
+    }
+
+    /* Page Header */
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .page-header-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.12), rgba(15, 23, 42, 0.12));
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: #1e293b;
+    }
+    .page-header h1 {
+        font-size: 24px;
+        font-weight: 800;
+        color: #1e293b;
+        letter-spacing: -0.5px;
+    }
+    .page-header .subtitle {
+        font-size: 14px;
+        color: #64748b;
+        font-weight: 400;
+        display: block;
+        margin-top: 2px;
+    }
+
+    /* Stats Cards - Premium Glass */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .stat-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 20px;
+        padding: 20px 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1);
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #1e293b, #475569, #1e293b);
+        background-size: 200% 100%;
+        animation: borderGlide 3s ease-in-out infinite;
+    }
+    @keyframes borderGlide {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    .stat-card .stat-icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+        display: block;
+        opacity: 0.8;
+    }
+    .stat-card .stat-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
+    .stat-card .stat-number {
+        font-size: 32px;
+        font-weight: 800;
+        color: #1e293b;
+        line-height: 1.2;
+    }
+    .stat-card .stat-number-green { color: #10b981; }
+    .stat-card .stat-number-red { color: #ef4444; }
+    .stat-card .stat-number-slate { color: #475569; }
+
+    .stat-card .stat-icon-bg {
+        position: absolute;
+        right: -8px;
+        bottom: -8px;
+        font-size: 72px;
+        opacity: 0.05;
+        pointer-events: none;
+    }
+
+    /* Live Search */
+    .search-wrapper {
+        position: relative;
+        flex: 1;
+        max-width: 420px;
+    }
+    .search-input {
+        width: 100%;
+        padding: 10px 14px 10px 40px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid rgba(226, 232, 240, 0.8);
+        border-radius: 14px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        outline: none;
+        color: #1e293b;
+    }
+    .search-input:focus {
+        border-color: rgba(30, 41, 59, 0.4);
+        box-shadow: 0 0 30px rgba(30, 41, 59, 0.06);
+        background: white;
+    }
+    .search-input::placeholder {
+        color: #94a3b8;
+    }
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+    .search-wrapper:focus-within .search-icon {
+        color: #1e293b;
+    }
+
+    /* Header Actions */
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-left: auto;
+    }
+
+    /* Table Container - Premium Glass */
+    .table-container {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+    .table-container:hover {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Table Wrapper */
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .table-wrapper::-webkit-scrollbar {
+        height: 6px;
+    }
+    .table-wrapper::-webkit-scrollbar-track {
+        background: rgba(226, 232, 240, 0.3);
+        border-radius: 10px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* Table */
+    .stock-table {
+        width: 100%;
+        min-width: 750px;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .stock-table thead th {
+        padding: 14px 16px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: white;
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+    }
+    .stock-table thead th:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 20%;
+        height: 60%;
+        width: 1px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    .stock-table tbody td {
+        padding: 12px 16px;
+        font-size: 13px;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.4);
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .stock-table tbody tr {
+        transition: all 0.2s ease;
+    }
+    .stock-table tbody tr:hover {
+        background: rgba(30, 41, 59, 0.04);
+        transform: scale(1.002);
+    }
+    .stock-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Table Footer */
+    .stock-table tfoot td {
+        padding: 14px 16px;
+        font-size: 13px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        border-top: 2px solid rgba(226, 232, 240, 0.5);
+    }
+
+    /* Value Colors */
+    .val-green { color: #10b981; font-weight: 600; }
+    .val-red { color: #ef4444; font-weight: 600; }
+    .val-slate { color: #475569; font-weight: 600; }
+
+    /* Empty State */
+    .empty-state {
+        padding: 48px 20px;
+        text-align: center;
+        color: #94a3b8;
+    }
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 12px;
+        opacity: 0.3;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-header {
+            flex-wrap: wrap;
+        }
+        .header-actions {
+            width: 100%;
+            margin-left: 0;
+            flex-wrap: wrap;
+        }
+        .search-wrapper {
+            flex: 1;
+            min-width: 100%;
+        }
+        .page-header h1 {
+            font-size: 22px;
+        }
+        .stat-card .stat-number {
+            font-size: 26px;
+        }
+        .stock-table thead th,
+        .stock-table tbody td,
+        .stock-table tfoot td {
+            padding: 10px 12px;
+            font-size: 12px;
+        }
+    }
+</style>
+
+<div class="dashboard-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-icon">
+            <i class="fas fa-tire"></i>
+        </div>
+        <div>
+            <h1>Cycle Tyre Stock</h1>
+            <span class="subtitle">Monitor production, sale, and stock of cycle tyres</span>
+        </div>
+        <div class="header-actions">
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" 
+                       id="liveSearch" 
+                       placeholder="Live search size / material / brand..."
+                       class="search-input">
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-icon">🏭</span>
+            <div class="stat-label">Today Production</div>
+            <div class="stat-number stat-number-green">{{ today_production|default:0 }}</div>
+            <div class="stat-icon-bg"><i class="fas fa-industry"></i></div>
+        </div>
+
+        <div class="stat-card">
+            <span class="stat-icon">🛒</span>
+            <div class="stat-label">Today Sale</div>
+            <div class="stat-number stat-number-red">{{ today_sale|default:0 }}</div>
+            <div class="stat-icon-bg"><i class="fas fa-shopping-cart"></i></div>
+        </div>
+
+        <div class="stat-card">
+            <span class="stat-icon">📈</span>
+            <div class="stat-label">Month Production</div>
+            <div class="stat-number stat-number-green">{{ month_production|default:0 }}</div>
+            <div class="stat-icon-bg"><i class="fas fa-chart-line"></i></div>
+        </div>
+
+        <div class="stat-card">
+            <span class="stat-icon">📉</span>
+            <div class="stat-label">Month Sale</div>
+            <div class="stat-number stat-number-red">{{ month_sale|default:0 }}</div>
+            <div class="stat-icon-bg"><i class="fas fa-chart-line"></i></div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container" id="table-wrapper">
+        <div class="table-wrapper">
+            <table class="stock-table" id="stock-table">
+                <thead>
+                    <tr>
+                        <th>Box Type</th>
+                        <th>Size</th>
+                        <th>Material</th>
+                        <th>Brand</th>
+                        <th class="text-right">Monthly Production</th>
+                        <th class="text-right">Monthly Sale</th>
+                        <th class="text-right">Stock</th>
+                        <th class="text-right">R.F.M. Stock</th>
+                        <th class="text-right font-bold">Total Stock</th>
+                    </tr>
+                </thead>
+                <tbody id="stock-body">
+                    {% for item in items %}
+                    <tr class="stock-row"
+                        data-box="{{ item.box_type|lower }}"
+                        data-size="{{ item.size|lower }}"
+                        data-material="{{ item.material|lower }}"
+                        data-brand="{{ item.brand|lower }}">
+                        <td class="font-medium text-slate-700">{{ item.box_type }}</td>
+                        <td>{{ item.size }}</td>
+                        <td>{{ item.material }}</td>
+                        <td>{{ item.brand }}</td>
+                        <td class="text-right val-green">{{ item.month_production }}</td>
+                        <td class="text-right val-red">{{ item.month_sale }}</td>
+                        <td class="text-right val-slate">{{ item.stock }}</td>
+                        <td class="text-right val-slate">{{ item.rfm_stock }}</td>
+                        <td class="text-right font-bold text-slate-900">{{ item.total_stock }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr id="empty-row">
+                        <td colspan="9" class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p class="text-base">No cycle tyres found.</p>
+                            <p class="text-sm text-slate-400">Add a new tyre to get started.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                {% if items %}
+                <tfoot>
+                    <tr>
+                        <td colspan="4" class="font-bold text-slate-600">TOTAL</td>
+                        <td class="text-right val-green font-bold">{{ month_production|default:0 }}</td>
+                        <td class="text-right val-red font-bold">{{ month_sale|default:0 }}</td>
+                        <td class="text-right val-slate font-bold">{{ total_stock_col|default:0 }}</td>
+                        <td class="text-right val-slate font-bold">{{ total_rfm_col|default:0 }}</td>
+                        <td class="text-right font-bold text-slate-900">{{ grand_total|default:0 }}</td>
+                    </tr>
+                </tfoot>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// Animate on load
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.stat-card, .table-container');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100 + (index * 120));
+    });
+
+    // Real-time Live Search (No Enter/Click needed)
+    const searchInput = document.getElementById('liveSearch');
+    const rows = document.querySelectorAll('.stock-row');
+    const emptyRow = document.getElementById('empty-row');
+
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const box = row.dataset.box || '';
+                const size = row.dataset.size || '';
+                const material = row.dataset.material || '';
+                const brand = row.dataset.brand || '';
+                
+                const searchData = `${box} ${size} ${material} ${brand}`;
+
+                if (searchTerm === '' || searchData.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            if (emptyRow) {
+                if (visibleCount === 0 && rows.length > 0) {
+                    emptyRow.style.display = '';
+                } else {
+                    emptyRow.style.display = 'none';
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

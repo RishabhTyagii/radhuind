@@ -1,0 +1,413 @@
+{% extends "base_layout.html" %}
+{% load static %}
+
+{% block title %}Stock Ledger (Tally){% endblock %}
+
+{% block nav_desktop %}
+  <a href="{% url 'home' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-home"></i> Home</a>
+  <a href="{% url 'raw_dashboard' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+  <a href="" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-layer-group"></i> Groups</a>
+{% endblock %}
+
+{% block nav_mobile %}
+  <a href="{% url 'home' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-home mr-1"></i>Home</a>
+  <a href="{% url 'raw_dashboard' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-tachometer-alt mr-1"></i>Dashboard</a>
+  <a href="" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-layer-group mr-1"></i>Groups</a>
+{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<style>
+    /* Stock Ledger - Premium Glassmorphism */
+    .ledger-container {
+        padding: 20px 0;
+    }
+
+    /* Page Header */
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .page-header-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(124, 58, 237, 0.15));
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: #8b5cf6;
+        box-shadow: 0 4px 16px rgba(139, 92, 246, 0.15);
+    }
+    .page-header h1 {
+        font-size: 28px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1e293b, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.5px;
+    }
+    .page-header .subtitle {
+        font-size: 14px;
+        color: #64748b;
+        font-weight: 400;
+        display: block;
+        margin-top: 2px;
+    }
+
+    /* Filter Card - Premium Glass */
+    .filter-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        padding: 24px 28px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+    .filter-card:hover {
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    .filter-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #8b5cf6, #7c3aed, #8b5cf6);
+        background-size: 200% 100%;
+        animation: gradientSlide 3s ease-in-out infinite;
+    }
+    @keyframes gradientSlide {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    /* Filter Inputs */
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        align-items: end;
+    }
+    .filter-group label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .filter-group label i {
+        margin-right: 4px;
+        color: #8b5cf6;
+    }
+    .filter-input {
+        width: 100%;
+        padding: 10px 14px;
+        background: rgba(241, 245, 249, 0.6);
+        border: 2px solid rgba(226, 232, 240, 0.6);
+        border-radius: 12px;
+        font-size: 13px;
+        transition: all 0.3s ease;
+        outline: none;
+        color: #1e293b;
+    }
+    .filter-input:focus {
+        border-color: rgba(139, 92, 246, 0.4);
+        box-shadow: 0 0 20px rgba(139, 92, 246, 0.06);
+        background: white;
+    }
+    .filter-input::placeholder {
+        color: #94a3b8;
+    }
+    select.filter-input {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 36px;
+    }
+
+    /* Search Button */
+    .search-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 24px;
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+        cursor: pointer;
+        width: 100%;
+    }
+    .search-btn:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+    }
+
+    /* Table Container - Premium Glass */
+    .table-container {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+    .table-container:hover {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Table Wrapper */
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .table-wrapper::-webkit-scrollbar {
+        height: 6px;
+    }
+    .table-wrapper::-webkit-scrollbar-track {
+        background: rgba(226, 232, 240, 0.3);
+        border-radius: 10px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* Table */
+    .ledger-table {
+        width: 100%;
+        min-width: 800px;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .ledger-table thead th {
+        padding: 14px 16px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: white;
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+    }
+    .ledger-table thead th:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 20%;
+        height: 60%;
+        width: 1px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    .ledger-table tbody td {
+        padding: 12px 16px;
+        font-size: 13px;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.4);
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .ledger-table tbody tr {
+        transition: all 0.2s ease;
+    }
+    .ledger-table tbody tr:hover {
+        background: rgba(139, 92, 246, 0.04);
+        transform: scale(1.002);
+    }
+    .ledger-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Value Colors */
+    .val-positive { color: #10b981; font-weight: 600; }
+    .val-negative { color: #ef4444; font-weight: 600; }
+    .val-neutral { color: #3b82f6; font-weight: 600; }
+
+    /* User Badge */
+    .user-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 10px;
+        border-radius: 12px;
+        background: rgba(59, 130, 246, 0.08);
+        color: #3b82f6;
+        font-size: 12px;
+    }
+
+    /* Empty State */
+    .empty-state {
+        padding: 48px 20px;
+        text-align: center;
+        color: #94a3b8;
+    }
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 12px;
+        opacity: 0.3;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-header h1 {
+            font-size: 22px;
+        }
+        .filter-card {
+            padding: 20px;
+        }
+        .filter-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+        .search-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .ledger-table thead th,
+        .ledger-table tbody td {
+            padding: 10px 12px;
+            font-size: 12px;
+        }
+    }
+    @media (max-width: 480px) {
+        .filter-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="ledger-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-icon">
+            <i class="fas fa-book-open"></i>
+        </div>
+        <div>
+            <h1>Stock Ledger (Tally)</h1>
+            <span class="subtitle">Complete transaction history for all materials</span>
+        </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="filter-card">
+        <form method="get" class="filter-grid">
+            <div class="filter-group">
+                <label><i class="fas fa-cube"></i> Material</label>
+                {{ form.material }}
+            </div>
+            <div class="filter-group">
+                <label><i class="fas fa-calendar-start"></i> From Date</label>
+                {{ form.from_date }}
+            </div>
+            <div class="filter-group">
+                <label><i class="fas fa-calendar-end"></i> To Date</label>
+                {{ form.to_date }}
+            </div>
+            <div class="filter-group" style="grid-column: span 1;">
+                <button type="submit" class="search-btn">
+                    <i class="fas fa-search"></i>
+                    Search
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <div class="table-wrapper">
+            <table class="ledger-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Group</th>
+                        <th>Material</th>
+                        <th>Opening</th>
+                        <th>Received</th>
+                        <th>Received By</th>
+                        <th>Used</th>
+                        <th>Closing</th>
+                        <th>Entry By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in entries %}
+                    <tr>
+                        <td class="text-slate-500">
+                            <i class="fas fa-calendar-day mr-1 text-slate-300"></i>
+                            {{ row.date|date:"d-M-Y" }}
+                        </td>
+                        <td class="font-medium text-slate-700">{{ row.material.group.name }}</td>
+                        <td class="font-medium text-slate-700">{{ row.material.name }}</td>
+                        <td class="val-neutral">{{ row.opening }}</td>
+                        <td class="val-positive">{{ row.received_quantity }}</td>
+                        <td>
+                            <span class="user-badge">
+                                <i class="fas fa-user-circle"></i>
+                                {{ row.received_by|default:"-" }}
+                            </span>
+                        </td>
+                        <td class="val-negative">{{ row.used_quantity }}</td>
+                        <td class="val-neutral">{{ row.closing }}</td>
+                        <td>
+                            <span class="user-badge">
+                                <i class="fas fa-user-circle"></i>
+                                {{ row.created_by|default:"-" }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p class="text-base">No records found.</p>
+                            <p class="text-sm text-slate-400">Try adjusting your filters.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// Animate on load
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.filter-card, .table-container');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100 + (index * 150));
+    });
+});
+</script>
+{% endblock %}

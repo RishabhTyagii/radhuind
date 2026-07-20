@@ -1,0 +1,172 @@
+{% extends "base_layout.html" %}
+{% block title %}Radhu Industries - Home{% endblock %}
+
+{% block nav_desktop %}
+  <a href="{% url 'home' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2">
+    <i class="fas fa-home"></i> Home
+  </a>
+{% endblock %}
+
+{% block nav_mobile %}
+  <a href="{% url 'home' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 flex items-center gap-2">
+    <i class="fas fa-home"></i> Home
+  </a>
+{% endblock %}
+
+{% block content %}
+<style>
+    /* Home Page Styles */
+    .home-container {
+        padding: 40px 0;
+    }
+
+    .home-header {
+        text-align: center;
+        margin-bottom: 48px;
+    }
+    .home-header h1 {
+        font-size: 32px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1e293b, #3b82f6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.5px;
+    }
+    .home-header p {
+        color: #64748b;
+        font-size: 15px;
+        margin-top: 8px;
+    }
+
+    .module-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        max-width: 640px;
+        margin: 0 auto;
+    }
+
+    .module-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(8px);
+        border: 2px solid rgba(226, 232, 240, 0.6);
+        border-radius: 24px;
+        padding: 40px 32px;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+        position: relative;
+        overflow: hidden;
+        display: block;
+        text-decoration: none;
+        color: inherit;
+    }
+    .module-card:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1);
+        border-color: #3b82f6;
+    }
+    .module-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+    .module-card:hover::before {
+        opacity: 1;
+    }
+
+    .module-icon {
+        font-size: 56px;
+        margin-bottom: 16px;
+        display: block;
+    }
+    .module-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 4px;
+    }
+    .module-desc {
+        font-size: 14px;
+        color: #64748b;
+        line-height: 1.5;
+    }
+
+    .module-badge {
+        display: inline-block;
+        margin-top: 12px;
+        padding: 4px 16px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+        .home-header h1 {
+            font-size: 26px;
+        }
+        .module-card {
+            padding: 32px 24px;
+        }
+        .module-icon {
+            font-size: 44px;
+        }
+    }
+</style>
+
+<div class="home-container">
+    <!-- Header -->
+    <div class="home-header">
+        <h1>Radhu Industries</h1>
+        <p>Stock Management Portal — Select a module to continue</p>
+    </div>
+
+    <!-- Module Grid -->
+    <div class="module-grid">
+        <!-- Auto Tyre Module -->
+        <a href="{% url 'dashboard' %}" class="module-card">
+            <span class="module-icon">🛞</span>
+            <div class="module-title">Auto Tyre</div>
+            <div class="module-desc">Production, Dispatch, Stock, Reports</div>
+            <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
+        </a>
+
+        <!-- Cycle Tube Module -->
+        <a href="{% url 'tube_dashboard' %}" class="module-card">
+            <span class="module-icon">🚲</span>
+            <div class="module-title">Cycle Tube</div>
+            <div class="module-desc">Production, Sale, Stock, Reports</div>
+            <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
+        </a>
+
+          <a href="{% url 'cycletyre_dashboard' %}"
+     class="block bg-white rounded-2xl shadow p-8 text-center hover:shadow-lg hover:-translate-y-1 transition-all border-2 border-transparent hover:border-slate-800">
+    <div class="text-5xl mb-3">🛞</div>
+    <div class="text-lg font-bold">Cycle Tyre</div>
+    <p class="text-slate-500 text-sm mt-1">Production, Sale, Stock, Reports</p>
+     <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
+  </a>
+
+
+<a href="{% url 'raw_dashboard' %}" class="module-card">
+    <span class="module-icon">🏗️</span>
+    <div class="module-title">Raw Materials</div>
+    <div class="module-desc">Manage raw material inventory and entries</div>
+    <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
+</a>
+
+    </div>
+</div>
+{% endblock %}

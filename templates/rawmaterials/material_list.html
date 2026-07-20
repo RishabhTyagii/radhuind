@@ -1,0 +1,447 @@
+{% extends "base_layout.html" %}
+{% load static %}
+
+{% block title %}{{ group.name }} - Raw Materials{% endblock %}
+
+{% block nav_desktop %}
+  <a href="{% url 'home' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-home"></i> Home</a>
+  <a href="" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-layer-group"></i> Groups</a>
+  <a href="" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-plus-circle text-emerald-400"></i> Add Material</a>
+{% endblock %}
+
+{% block nav_mobile %}
+  <a href="{% url 'home' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-home mr-1"></i>Home</a>
+  <a href="" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20"><i class="fas fa-layer-group mr-1"></i>Groups</a>
+  <a href="" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-plus-circle mr-1"></i>Add</a>
+{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<style>
+    /* Material List Styles - Table View */
+    .materials-container {
+        padding: 20px 0;
+    }
+
+    /* Page Header with Breadcrumb */
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .page-header-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(139, 92, 246, 0.12));
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: #3b82f6;
+    }
+    .page-header h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+    .page-header .breadcrumb {
+        font-size: 13px;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 2px;
+    }
+    .page-header .breadcrumb a {
+        color: #3b82f6;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .page-header .breadcrumb a:hover {
+        color: #2563eb;
+        text-decoration: underline;
+    }
+    .count-badge {
+        display: inline-block;
+        margin-left: 12px;
+        padding: 2px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        background: rgba(59, 130, 246, 0.12);
+        color: #3b82f6;
+    }
+
+
+
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 26px;
+        transition: all 0.3s ease;
+    }
+
+    .stat-box .stat-number {
+        font-size: 28px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1e293b, #334155);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .stat-box .stat-label {
+        font-size: 11px;
+        color: #64748b;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 2px;
+    }
+
+
+    /* Live Search */
+    .search-wrapper {
+        position: relative;
+        flex: 1;
+        max-width: 400px;
+    }
+    .search-input {
+        width: 100%;
+        padding: 10px 14px 10px 40px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid rgba(226, 232, 240, 0.8);
+        border-radius: 14px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        outline: none;
+        color: #1e293b;
+    }
+    .search-input:focus {
+        border-color: rgba(59, 130, 246, 0.4);
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.06);
+        background: white;
+    }
+    .search-input::placeholder {
+        color: #94a3b8;
+    }
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+    .search-wrapper:focus-within .search-icon {
+        color: #3b82f6;
+    }
+
+    /* Table Container - Premium Glass */
+    .table-container {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        margin-top: 8px;
+    }
+    .table-container:hover {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Table Wrapper with Scroll */
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .table-wrapper::-webkit-scrollbar {
+        height: 6px;
+    }
+    .table-wrapper::-webkit-scrollbar-track {
+        background: rgba(226, 232, 240, 0.3);
+        border-radius: 10px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* Table */
+    .material-table {
+        width: 100%;
+        min-width: 600px;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .material-table thead th {
+        padding: 14px 16px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: white;
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+    }
+    .material-table thead th:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 20%;
+        height: 60%;
+        width: 1px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    .material-table tbody td {
+        padding: 12px 16px;
+        font-size: 13px;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.4);
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .material-table tbody tr {
+        transition: all 0.2s ease;
+    }
+    .material-table tbody tr:hover {
+        background: rgba(59, 130, 246, 0.04);
+        transform: scale(1.002);
+    }
+    .material-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Table Footer */
+    .material-table tfoot td {
+        padding: 14px 16px;
+        font-size: 13px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        border-top: 2px solid rgba(226, 232, 240, 0.5);
+    }
+
+    /* Action Button */
+    .action-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 16px;
+    }
+    .add-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        border: none;
+        border-radius: 14px;
+        color: white;
+        font-weight: 600;
+        font-size: 30px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        text-decoration: none;
+    }
+    .add-btn:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+    }
+
+    /* Empty State */
+    .empty-state {
+        padding: 48px 20px;
+        text-align: center;
+        color: #94a3b8;
+    }
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 12px;
+        opacity: 0.3;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-header h1 {
+            font-size: 20px;
+        }
+        .stat-box .stat-number {
+            font-size: 18px;
+        }
+        .material-table thead th,
+        .material-table tbody td,
+        .material-table tfoot td {
+            padding: 10px 12px;
+            font-size: 12px;
+        }
+        .search-wrapper {
+            max-width: 100%;
+        }
+        .action-row {
+            justify-content: flex-start;
+        }
+    }
+</style>
+
+<div class="materials-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-icon">
+            <i class="fas fa-boxes"></i>
+        </div>
+        <div>
+            <h1>
+                {{ group.name }}
+                <span class="count-badge">{{ materials|length }} Material{{ materials|length|pluralize }}</span>
+            </h1>
+            <div class="breadcrumb">
+                <a href=""><i class="fas fa-layer-group"></i> Groups</a>
+                <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
+                <span>{{ group.name }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Summary -->
+
+
+    <!-- Header & Live Search -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+
+
+
+       <div class="action-row add-btn">
+            <div class="stat-icon">📦</div>
+            <div class="stat-number">{{ materials|length }}</div>
+            <div class="stat-label">Total Materials</div>
+        </div>
+
+
+
+        
+        <div class="search-wrapper">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" 
+                   id="liveSearch" 
+                   placeholder="Live search materials..."
+                   class="search-input">
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container" id="table-wrapper">
+        <div class="table-wrapper">
+            <table class="material-table" id="material-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Material Name</th>
+                        <th class="text-right">Stock</th>
+                        <th>Status</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    {% for material in materials %}
+                    <tr class="material-row"
+                        data-name="{{ material.name|lower }}">
+                        <td class="text-slate-500">{{ forloop.counter }}</td>
+                        <td class="font-medium text-slate-700">{{ material.name }}</td>
+                        <td class="text-right font-semibold text-blue-600">{{ material.stock|default:0 }}</td>
+                        <td>
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                Active
+                            </span>
+                        </td>
+                        <td class="text-right">
+                            <a href="{% url 'tally_card' material.id %}" class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                                <i class="fas fa-eye"></i> Tally
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr id="empty-row">
+                        <td colspan="5" class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p class="text-base">No materials found.</p>
+                            <p class="text-sm text-slate-400">Add a new material to get started.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                {% if materials %}
+                <tfoot>
+                    <tr>
+                        <td colspan="2" class="font-bold text-slate-600">TOTAL</td>
+                        <td class="text-right font-bold text-blue-600">{{ total_stock|default:0 }}</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// Animate on load
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.stat-box, .table-container');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100 + (index * 80));
+    });
+
+    // Live Search Functionality
+    const searchInput = document.getElementById('liveSearch');
+    const rows = document.querySelectorAll('.material-row');
+    const emptyRow = document.getElementById('empty-row');
+
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const name = row.dataset.name || '';
+                if (searchTerm === '' || name.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            if (emptyRow) {
+                if (visibleCount === 0 && rows.length > 0) {
+                    emptyRow.style.display = '';
+                } else {
+                    emptyRow.style.display = 'none';
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

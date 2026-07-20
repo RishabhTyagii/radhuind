@@ -1,0 +1,295 @@
+{% extends "stock/base.html" %}
+{% block content %}
+{% load static %}
+
+<style>
+    /* Adjustment Page Styles */
+    .adjustment-container {
+        padding: 40px 0;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 70vh;
+    }
+
+    /* Adjustment Card - Premium Glass */
+    .adjustment-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        max-width: 500px;
+    }
+    .adjustment-card:hover {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        transform: translateY(-4px);
+    }
+    .adjustment-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6, #3b82f6);
+        background-size: 200% 100%;
+        animation: gradientSlide 3s ease-in-out infinite;
+    }
+    @keyframes gradientSlide {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    /* Adjustment Icon */
+    .adjustment-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(139, 92, 246, 0.12));
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        color: #3b82f6;
+        margin-bottom: 16px;
+        transition: all 0.3s ease;
+    }
+    .adjustment-card:hover .adjustment-icon {
+        transform: scale(1.05) rotate(-5deg);
+    }
+
+    /* Form Inputs - Premium */
+    .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(241, 245, 249, 0.6);
+        border: 2px solid rgba(226, 232, 240, 0.6);
+        border-radius: 14px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        outline: none;
+        color: #1e293b;
+    }
+    .form-input:focus {
+        border-color: rgba(59, 130, 246, 0.4);
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.06);
+        background: white;
+    }
+    .form-input::placeholder {
+        color: #94a3b8;
+    }
+    .form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 6px;
+        letter-spacing: 0.3px;
+    }
+    .form-label i {
+        margin-right: 6px;
+        color: #3b82f6;
+    }
+
+    /* Select Dropdown Styling */
+    select.form-input {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 36px;
+    }
+
+    /* Submit Button - Premium Gradient */
+    .submit-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6, #3b82f6);
+        background-size: 200% 200%;
+        border: none;
+        border-radius: 16px;
+        color: white;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        animation: gradientMove 3s ease-in-out infinite;
+        position: relative;
+        overflow: hidden;
+    }
+    @keyframes gradientMove {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    .submit-btn:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+    }
+    .submit-btn:active {
+        transform: scale(0.98);
+    }
+    .submit-btn::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15), transparent);
+        transform: rotate(45deg);
+        animation: btnShine 3s ease-in-out infinite;
+    }
+    @keyframes btnShine {
+        0% { transform: translateX(-100%) rotate(45deg); }
+        100% { transform: translateX(100%) rotate(45deg); }
+    }
+
+    /* Error Text */
+    .error-text {
+        color: #ef4444;
+        font-size: 12px;
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Info Note */
+    .info-note {
+        background: rgba(59, 130, 246, 0.08);
+        border: 1px solid rgba(59, 130, 246, 0.12);
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 13px;
+        color: #475569;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .info-note i {
+        color: #3b82f6;
+        margin-top: 2px;
+    }
+
+    /* Bucket Tags */
+    .bucket-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 16px;
+    }
+    .bucket-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+    .bucket-tag-repair { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+    .bucket-tag-rfm { background: rgba(139, 92, 246, 0.12); color: #8b5cf6; }
+    .bucket-tag-old { background: rgba(251, 191, 36, 0.12); color: #f59e0b; }
+    .bucket-tag-hold { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+        .adjustment-card {
+            padding: 24px 20px;
+            margin: 0 16px;
+        }
+        .adjustment-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 22px;
+        }
+        .form-input {
+            padding: 10px 14px;
+            font-size: 13px;
+        }
+        .submit-btn {
+            padding: 12px;
+            font-size: 14px;
+        }
+    }
+</style>
+
+<div class="adjustment-container">
+    <div class="adjustment-card">
+        <!-- Icon -->
+        <div class="adjustment-icon">
+            <i class="fas fa-sliders-h"></i>
+        </div>
+        
+        <!-- Title -->
+        <h1 class="text-xl font-bold text-slate-800 mb-1">Stock Adjustment</h1>
+        
+        <!-- Bucket Tags -->
+        <div class="bucket-tags">
+            <span class="bucket-tag bucket-tag-repair"><i class="fas fa-tools"></i> Repair</span>
+            <span class="bucket-tag bucket-tag-rfm"><i class="fas fa-check-circle"></i> RFM OK</span>
+            <span class="bucket-tag bucket-tag-old"><i class="fas fa-calendar"></i> 2025 Old</span>
+            <span class="bucket-tag bucket-tag-hold"><i class="fas fa-pause-circle"></i> On Hold-Export</span>
+        </div>
+
+        <!-- Info Note -->
+        <div class="info-note">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                Manually adjust Repair / RFM OK / 2025 Old / On Hold-Export buckets.
+                <br>
+                <span class="text-slate-400 text-xs">Examples: Repair returned, Market return, Hold placement, etc.</span>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {% for field in form %}
+            <div>
+                <label class="form-label">
+                    <i class="fas {% if 'tyre' in field.name %}fa-tire{% elif 'quantity' in field.name %}fa-hashtag{% elif 'bucket' in field.name %}fa-warehouse{% elif 'remark' in field.name %}fa-comment{% else %}fa-tag{% endif %}"></i>
+                    {{ field.label }}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <p class="error-text">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ field.errors.0 }}
+                </p>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-save mr-2"></i>
+                Save Adjustment
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+// Animate card on load
+document.addEventListener('DOMContentLoaded', function() {
+    const card = document.querySelector('.adjustment-card');
+    if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100);
+    }
+});
+</script>
+{% endblock %}

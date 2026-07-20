@@ -1,0 +1,447 @@
+{% extends "base_layout.html" %}
+{% load static %}
+
+{% block title %}Low Stock Report{% endblock %}
+
+{% block nav_desktop %}
+  <a href="{% url 'home' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-home"></i> Home</a>
+  <a href="{% url 'raw_dashboard' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+  <a href="" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-layer-group"></i> Groups</a>
+{% endblock %}
+
+{% block nav_mobile %}
+  <a href="{% url 'home' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-home mr-1"></i>Home</a>
+  <a href="{% url 'raw_dashboard' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-tachometer-alt mr-1"></i>Dashboard</a>
+  <a href="" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-layer-group mr-1"></i>Groups</a>
+{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<style>
+    /* Low Stock Report - Premium Glassmorphism */
+    .lowstock-container {
+        padding: 20px 0;
+    }
+
+    /* Page Header */
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .page-header-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: #ef4444;
+        box-shadow: 0 4px 16px rgba(239, 68, 68, 0.15);
+    }
+    .page-header h1 {
+        font-size: 28px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1e293b, #ef4444);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.5px;
+    }
+    .page-header .subtitle {
+        font-size: 14px;
+        color: #64748b;
+        font-weight: 400;
+        display: block;
+        margin-top: 2px;
+    }
+
+    /* Stats Summary */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .stat-box {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 16px;
+        padding: 16px 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+    .stat-box:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+    .stat-box .stat-icon {
+        font-size: 24px;
+        margin-bottom: 4px;
+    }
+    .stat-box .stat-number {
+        font-size: 22px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1e293b, #334155);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .stat-box .stat-label {
+        font-size: 11px;
+        color: #64748b;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 2px;
+    }
+    .stat-red .stat-number { background: linear-gradient(135deg, #ef4444, #dc2626); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-yellow .stat-number { background: linear-gradient(135deg, #f59e0b, #d97706); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-green .stat-number { background: linear-gradient(135deg, #10b981, #059669); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* Real-time Live Search */
+    .search-wrapper {
+        position: relative;
+        flex: 1;
+        max-width: 400px;
+        margin-left: auto;
+    }
+    .search-input {
+        width: 100%;
+        padding: 10px 14px 10px 40px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid rgba(226, 232, 240, 0.8);
+        border-radius: 14px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        outline: none;
+        color: #1e293b;
+    }
+    .search-input:focus {
+        border-color: rgba(239, 68, 68, 0.4);
+        box-shadow: 0 0 30px rgba(239, 68, 68, 0.06);
+        background: white;
+    }
+    .search-input::placeholder {
+        color: #94a3b8;
+    }
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+    .search-wrapper:focus-within .search-icon {
+        color: #ef4444;
+    }
+
+    /* Header Actions */
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-left: auto;
+    }
+
+    /* Table Container - Premium Glass */
+    .table-container {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+    .table-container:hover {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Table Wrapper */
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .table-wrapper::-webkit-scrollbar {
+        height: 6px;
+    }
+    .table-wrapper::-webkit-scrollbar-track {
+        background: rgba(226, 232, 240, 0.3);
+        border-radius: 10px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* Table */
+    .lowstock-table {
+        width: 100%;
+        min-width: 750px;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .lowstock-table thead th {
+        padding: 14px 16px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: white;
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+    }
+    .lowstock-table thead th:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 20%;
+        height: 60%;
+        width: 1px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    .lowstock-table tbody td {
+        padding: 12px 16px;
+        font-size: 13px;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.4);
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .lowstock-table tbody tr {
+        transition: all 0.2s ease;
+    }
+    .lowstock-table tbody tr:hover {
+        background: rgba(239, 68, 68, 0.04);
+        transform: scale(1.002);
+    }
+    .lowstock-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .status-good { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .status-low { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .status-out { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+    /* Value Colors */
+    .val-positive { color: #10b981; font-weight: 600; }
+    .val-negative { color: #ef4444; font-weight: 600; }
+
+    /* Empty State */
+    .empty-state {
+        padding: 48px 20px;
+        text-align: center;
+        color: #94a3b8;
+    }
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 12px;
+        opacity: 0.3;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .page-header {
+            flex-wrap: wrap;
+        }
+        .header-actions {
+            width: 100%;
+            margin-left: 0;
+            flex-wrap: wrap;
+        }
+        .search-wrapper {
+            flex: 1;
+            min-width: 100%;
+        }
+        .page-header h1 {
+            font-size: 22px;
+        }
+        .lowstock-table thead th,
+        .lowstock-table tbody td {
+            padding: 10px 12px;
+            font-size: 12px;
+        }
+        .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+<div class="lowstock-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div>
+            <h1>Low Stock Report</h1>
+            <span class="subtitle">Monitor materials that are running low or out of stock</span>
+        </div>
+        <div class="header-actions">
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" 
+                       id="liveSearch" 
+                       placeholder="Live search group / material..."
+                       class="search-input">
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="stats-row">
+        <div class="stat-box stat-red">
+            <div class="stat-icon">⛔</div>
+            <div class="stat-number">{{ out_count|default:0 }}</div>
+            <div class="stat-label">Out of Stock</div>
+        </div>
+        <div class="stat-box stat-yellow">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-number">{{ low_count|default:0 }}</div>
+            <div class="stat-label">Low Stock</div>
+        </div>
+        <div class="stat-box stat-green">
+            <div class="stat-icon">✅</div>
+            <div class="stat-number">{{ good_count|default:0 }}</div>
+            <div class="stat-label">Good Stock</div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <div class="table-wrapper">
+            <table class="lowstock-table" id="lowstock-table">
+                <thead>
+                    <tr>
+                        <th>Group</th>
+                        <th>Material</th>
+                        <th class="text-right">Current</th>
+                        <th class="text-right">Last Month Usage</th>
+                        <th class="text-right">Avg / Day</th>
+                        <th class="text-right">Days Left</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="lowstock-body">
+                    {% for row in rows %}
+                    <tr class="lowstock-row"
+                        data-group="{{ row.group|lower }}"
+                        data-material="{{ row.material|lower }}"
+                        data-status="{{ row.status|lower }}">
+                        <td class="font-medium text-slate-700">{{ row.group }}</td>
+                        <td class="font-medium text-slate-700">{{ row.material }}</td>
+                        <td class="text-right font-semibold">
+                            {{ row.stock }} {{ row.unit }}
+                        </td>
+                        <td class="text-right">{{ row.usage }}</td>
+                        <td class="text-right">{{ row.avg }}</td>
+                        <td class="text-right val-negative">{{ row.days_left }}</td>
+                        <td>
+                            <span class="status-badge 
+                                {% if row.status == "GOOD" %}status-good
+                                {% elif row.status == "LOW" %}status-low
+                                {% else %}status-out{% endif %}">
+                                {% if row.status == "GOOD" %}
+                                    <i class="fas fa-check-circle"></i>
+                                {% elif row.status == "LOW" %}
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                {% else %}
+                                    <i class="fas fa-times-circle"></i>
+                                {% endif %}
+                                {{ row.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr id="empty-row">
+                        <td colspan="7" class="empty-state">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <p class="text-base">All materials are well-stocked!</p>
+                            <p class="text-sm text-slate-400">No low stock items found.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// Animate on load
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.stat-box, .table-container');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100 + (index * 80));
+    });
+
+    // Real-time Live Search (No Enter/Click needed)
+    const searchInput = document.getElementById('liveSearch');
+    const rows = document.querySelectorAll('.lowstock-row');
+    const emptyRow = document.getElementById('empty-row');
+
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const group = row.dataset.group || '';
+                const material = row.dataset.material || '';
+                const status = row.dataset.status || '';
+                
+                const searchData = `${group} ${material} ${status}`;
+
+                if (searchTerm === '' || searchData.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            if (emptyRow) {
+                if (visibleCount === 0 && rows.length > 0) {
+                    emptyRow.style.display = '';
+                } else {
+                    emptyRow.style.display = 'none';
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,469 @@
+{% extends "cycletyres/base.html" %}
+{% load static %}
+
+{% block title %}Add Sale - Cycle Tyre{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<style>
+    /* Sale Entry - Premium Black/White Theme */
+    .sale-container {
+        padding: 20px 0;
+        position: relative;
+    }
+
+    /* Sale Card - Premium Glass */
+    .sale-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 24px;
+        padding: 32px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+    }
+    .sale-card:hover {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        transform: translateY(-4px);
+    }
+    .sale-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #1e293b, #475569, #1e293b);
+        background-size: 200% 100%;
+        animation: borderGlide 3s ease-in-out infinite;
+    }
+    @keyframes borderGlide {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    /* Sale Icon */
+    .sale-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(220, 38, 38, 0.12));
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        color: #ef4444;
+        margin-bottom: 16px;
+        transition: all 0.3s ease;
+    }
+    .sale-card:hover .sale-icon {
+        transform: scale(1.05) rotate(5deg);
+    }
+
+    /* Sale Badge */
+    .sale-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        background: rgba(239, 68, 68, 0.12);
+        color: #ef4444;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+    }
+
+    /* Form Inputs - Premium */
+    .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(241, 245, 249, 0.6);
+        border: 2px solid rgba(226, 232, 240, 0.6);
+        border-radius: 14px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        outline: none;
+        color: #1e293b;
+    }
+    .form-input:focus {
+        border-color: rgba(239, 68, 68, 0.4);
+        box-shadow: 0 0 30px rgba(239, 68, 68, 0.06);
+        background: white;
+    }
+    .form-input::placeholder {
+        color: #94a3b8;
+    }
+    .form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 6px;
+        letter-spacing: 0.3px;
+    }
+    .form-label i {
+        margin-right: 6px;
+        color: #ef4444;
+    }
+
+    /* Select Dropdown Styling */
+    select.form-input {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 36px;
+    }
+
+    /* Submit Button - Premium Gradient */
+    .submit-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #ef4444, #dc2626, #ef4444);
+        background-size: 200% 200%;
+        border: none;
+        border-radius: 16px;
+        color: white;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+        animation: gradientMove 3s ease-in-out infinite;
+        position: relative;
+        overflow: hidden;
+    }
+    @keyframes gradientMove {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    .submit-btn:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 8px 30px rgba(239, 68, 68, 0.4);
+    }
+    .submit-btn:active {
+        transform: scale(0.98);
+    }
+    .submit-btn::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15), transparent);
+        transform: rotate(45deg);
+        animation: btnShine 3s ease-in-out infinite;
+    }
+    @keyframes btnShine {
+        0% { transform: translateX(-100%) rotate(45deg); }
+        100% { transform: translateX(100%) rotate(45deg); }
+    }
+
+    /* Recent Sale Entries Table */
+    .sale-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .sale-table thead th {
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        border-bottom: 2px solid rgba(226, 232, 240, 0.5);
+    }
+    .sale-table tbody td {
+        padding: 12px 16px;
+        font-size: 14px;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.3);
+        transition: all 0.2s ease;
+    }
+    .sale-table tbody tr {
+        transition: all 0.2s ease;
+    }
+    .sale-table tbody tr:hover {
+        background: rgba(239, 68, 68, 0.04);
+        transform: scale(1.002);
+    }
+    .sale-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Quantity Badge */
+    .qty-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 13px;
+    }
+    .qty-badge-sale {
+        background: rgba(239, 68, 68, 0.12);
+        color: #ef4444;
+    }
+
+    /* Bucket Badge */
+    .bucket-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+    .bucket-stock { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+    .bucket-rfm { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+
+    /* Bill Number Badge */
+    .bill-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 10px;
+        border-radius: 12px;
+        background: rgba(30, 41, 59, 0.06);
+        color: #475569;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    /* User Badge */
+    .user-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 12px;
+        border-radius: 20px;
+        background: rgba(59, 130, 246, 0.08);
+        color: #3b82f6;
+        font-size: 12px;
+    }
+
+    /* Remark Text */
+    .remark-text {
+        font-size: 12px;
+        color: #64748b;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: block;
+    }
+
+    /* Empty State */
+    .empty-state {
+        padding: 40px 20px;
+        text-align: center;
+        color: #94a3b8;
+    }
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 12px;
+        opacity: 0.3;
+    }
+
+    /* Error Text */
+    .error-text {
+        color: #ef4444;
+        font-size: 12px;
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Section Title with Line */
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    .section-title h2 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+    .section-title .line {
+        flex: 1;
+        height: 2px;
+        background: linear-gradient(90deg, rgba(239, 68, 68, 0.2), transparent);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .sale-card {
+            padding: 24px;
+        }
+        .form-input {
+            padding: 10px 14px;
+            font-size: 13px;
+        }
+        .sale-table thead th,
+        .sale-table tbody td {
+            padding: 10px 12px;
+            font-size: 12px;
+        }
+        .sale-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 22px;
+        }
+        .remark-text {
+            max-width: 80px;
+        }
+    }
+</style>
+
+<div class="sale-container">
+    <div class="grid md:grid-cols-2 gap-6">
+        <!-- Sale Entry Form -->
+        <div class="sale-card">
+            <div class="sale-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            
+            <span class="sale-badge"><i class="fas fa-tag"></i> Sale Entry</span>
+            
+            <h1 class="text-xl font-bold text-slate-800 mb-1">Daily Sale Entry</h1>
+            <p class="text-sm text-slate-500 mb-6 flex items-center gap-2">
+                <i class="fas fa-info-circle text-red-500"></i>
+                Select the bucket from which the tyre is being sold 
+                <span class="font-semibold text-red-600">(STOCK / R.F.M. Stock)</span>.
+            </p>
+
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                {% for field in form %}
+                <div>
+                    <label class="form-label">
+                        <i class="fas {% if 'tyre' in field.name %}fa-tire{% elif 'quantity' in field.name %}fa-hashtag{% elif 'bucket' in field.name %}fa-warehouse{% elif 'bill' in field.name %}fa-receipt{% elif 'remark' in field.name %}fa-comment{% else %}fa-tag{% endif %}"></i>
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <p class="error-text">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ field.errors.0 }}
+                    </p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-minus-circle mr-2"></i>
+                    Process Sale
+                </button>
+            </form>
+        </div>
+
+        <!-- Recent Sale Entries -->
+        <div class="sale-card">
+            <div class="section-title">
+                <h2>
+                    <i class="fas fa-clock text-red-500 mr-2"></i>
+                    Recent Sale Entries
+                </h2>
+                <div class="line"></div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="sale-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Tyre</th>
+                            <th>From</th>
+                            <th class="text-right">Qty</th>
+                            <th>Bill No.</th>
+                            <th>Remark</th>
+                            <th>By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in recent %}
+                        <tr>
+                            <td class="text-slate-500">
+                                <i class="fas fa-calendar-day mr-1 text-slate-300"></i>
+                                {{ e.date|date:"d-M-Y" }}
+                            </td>
+                            <td class="font-medium text-slate-700">{{ e.tyre_item }}</td>
+                            <td>
+                                <span class="bucket-badge 
+                                    {% if e.bucket == 'stock' %}bucket-stock
+                                    {% elif e.bucket == 'rfm' %}bucket-rfm
+                                    {% endif %}">
+                                    <i class="fas fa-warehouse"></i>
+                                    {{ e.get_bucket_display }}
+                                </span>
+                            </td>
+                            <td class="text-right">
+                                <span class="qty-badge qty-badge-sale">
+                                    <i class="fas fa-minus"></i>
+                                    {{ e.quantity }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="bill-badge">
+                                    <i class="fas fa-receipt"></i>
+                                    {{ e.bill_number|default:"-" }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="remark-text" title="{{ e.remark|default:'-' }}">
+                                    {{ e.remark|default:"-" }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="user-badge">
+                                    <i class="fas fa-user-circle"></i>
+                                    {{ e.user.username|default:"-" }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p class="text-base">No sale entries found yet.</p>
+                                <p class="text-sm text-slate-400">Add a sale entry from the form.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Animate cards on load
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.sale-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100 + (index * 150));
+    });
+});
+</script>
+{% endblock %}

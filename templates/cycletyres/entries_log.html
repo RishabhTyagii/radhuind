@@ -1,0 +1,595 @@
+{% extends "cycletyres/base.html" %}
+{% load static %}
+
+{% block title %}Entries Log - Cycle Tyre{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<style>
+    /* Entries Log - Premium Black/White Theme */
+    .entries-container {
+        padding: 20px 0;
+    }
+
+    /* Page Header */
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .page-header-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.12), rgba(15, 23, 42, 0.12));
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: #1e293b;
+    }
+    .page-header h1 {
+        font-size: 24px;
+        font-weight: 800;
+        color: #1e293b;
+        letter-spacing: -0.5px;
+    }
+    .page-header .subtitle {
+        font-size: 14px;
+        color: #64748b;
+        font-weight: 400;
+        display: block;
+        margin-top: 2px;
+    }
+
+    /* Filter Card - Premium Glass */
+    .filter-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        padding: 24px 28px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+    .filter-card:hover {
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    .filter-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #1e293b, #475569, #1e293b);
+        background-size: 200% 100%;
+        animation: borderGlide 3s ease-in-out infinite;
+    }
+    @keyframes borderGlide {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    /* Filter Inputs */
+    .filter-input {
+        border: 2px solid rgba(226, 232, 240, 0.6);
+        border-radius: 12px;
+        padding: 8px 14px;
+        font-size: 13px;
+        transition: all 0.3s ease;
+        outline: none;
+        background: rgba(241, 245, 249, 0.4);
+        color: #1e293b;
+        width: 100%;
+        min-width: 140px;
+    }
+    .filter-input:focus {
+        border-color: rgba(30, 41, 59, 0.4);
+        box-shadow: 0 0 20px rgba(30, 41, 59, 0.06);
+        background: white;
+    }
+    .filter-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .filter-label i {
+        margin-right: 4px;
+        color: #1e293b;
+    }
+
+    /* Live Search */
+    .search-wrapper {
+        position: relative;
+        flex: 1;
+        min-width: 200px;
+    }
+    .search-input {
+        width: 100%;
+        padding: 8px 14px 8px 38px;
+        border: 2px solid rgba(226, 232, 240, 0.6);
+        border-radius: 12px;
+        font-size: 13px;
+        transition: all 0.3s ease;
+        outline: none;
+        background: rgba(241, 245, 249, 0.4);
+        color: #1e293b;
+    }
+    .search-input:focus {
+        border-color: rgba(30, 41, 59, 0.4);
+        box-shadow: 0 0 20px rgba(30, 41, 59, 0.06);
+        background: white;
+    }
+    .search-input::placeholder {
+        color: #94a3b8;
+    }
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    .search-wrapper:focus-within .search-icon {
+        color: #1e293b;
+    }
+
+    /* Filter Buttons */
+    .filter-btn {
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        border: none;
+        border-radius: 12px;
+        padding: 8px 20px;
+        color: white;
+        font-weight: 500;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 12px rgba(30, 41, 59, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .filter-btn:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 4px 20px rgba(30, 41, 59, 0.3);
+    }
+    .filter-btn:active {
+        transform: scale(0.97);
+    }
+
+    .reset-btn {
+        background: transparent;
+        border: 2px solid rgba(226, 232, 240, 0.6);
+        border-radius: 12px;
+        padding: 8px 16px;
+        color: #64748b;
+        font-weight: 500;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .reset-btn:hover {
+        background: rgba(226, 232, 240, 0.3);
+        border-color: #94a3b8;
+        transform: translateY(-2px);
+    }
+
+    /* Table Container - Premium Glass */
+    .table-container {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+    .table-container:hover {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Table Wrapper */
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .table-wrapper::-webkit-scrollbar {
+        height: 6px;
+    }
+    .table-wrapper::-webkit-scrollbar-track {
+        background: rgba(226, 232, 240, 0.3);
+        border-radius: 10px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* Table */
+    .entries-table {
+        width: 100%;
+        min-width: 750px;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .entries-table thead th {
+        padding: 14px 16px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: white;
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        white-space: nowrap;
+    }
+    .entries-table thead th:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 20%;
+        height: 60%;
+        width: 1px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    .entries-table tbody td {
+        padding: 12px 16px;
+        font-size: 13px;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.4);
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .entries-table tbody tr {
+        transition: all 0.2s ease;
+    }
+    .entries-table tbody tr:hover {
+        background: rgba(30, 41, 59, 0.04);
+        transform: scale(1.002);
+    }
+    .entries-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Entry Type Badges */
+    .type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .type-production { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .type-sale { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .type-adjustment { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+
+    /* Bucket Badge */
+    .bucket-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        background: rgba(30, 41, 59, 0.06);
+        color: #475569;
+    }
+
+    /* Quantity Format */
+    .qty-positive { color: #10b981; font-weight: 600; }
+    .qty-negative { color: #ef4444; font-weight: 600; }
+
+    /* Bill Number */
+    .bill-number {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 10px;
+        border-radius: 12px;
+        background: rgba(30, 41, 59, 0.04);
+        color: #475569;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    /* User Badge */
+    .user-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 10px;
+        border-radius: 20px;
+        background: rgba(59, 130, 246, 0.08);
+        color: #3b82f6;
+        font-size: 12px;
+    }
+
+    /* Remark */
+    .remark-text {
+        font-size: 12px;
+        color: #64748b;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: block;
+    }
+
+    /* Empty State */
+    .empty-state {
+        padding: 48px 20px;
+        text-align: center;
+        color: #94a3b8;
+    }
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 12px;
+        opacity: 0.3;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .filter-card {
+            padding: 20px;
+        }
+        .filter-input {
+            min-width: 100%;
+        }
+        .filter-btn, .reset-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .page-header h1 {
+            font-size: 20px;
+        }
+        .entries-table thead th,
+        .entries-table tbody td {
+            padding: 10px 12px;
+            font-size: 12px;
+        }
+        .search-wrapper {
+            min-width: 100%;
+        }
+    }
+</style>
+
+<div class="entries-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-icon">
+            <i class="fas fa-history"></i>
+        </div>
+        <div>
+            <h1>Entries Log</h1>
+            <span class="subtitle">Track all production, sale, and adjustment activities</span>
+        </div>
+    </div>
+
+    <!-- Filter Card with Live Search -->
+    <div class="filter-card">
+        <form method="get" class="flex flex-wrap gap-3 items-end">
+            <div>
+                <label class="filter-label">
+                    <i class="fas fa-calendar-day"></i> Single Date
+                </label>
+                <input type="date" name="date" value="{{ date_str }}" class="filter-input">
+            </div>
+            <div>
+                <label class="filter-label">
+                    <i class="fas fa-calendar-alt"></i> Month
+                </label>
+                <input type="month" name="month" value="{{ month_str }}" class="filter-input">
+            </div>
+            <div>
+                <label class="filter-label">
+                    <i class="fas fa-filter"></i> Entry Type
+                </label>
+                <select name="type" class="filter-input">
+                    <option value="">All</option>
+                    <option value="production" {% if entry_type == "production" %}selected{% endif %}>Production</option>
+                    <option value="sale" {% if entry_type == "sale" %}selected{% endif %}>Sale</option>
+                    <option value="adjustment" {% if entry_type == "adjustment" %}selected{% endif %}>Adjustment</option>
+                </select>
+            </div>
+            
+            <!-- Live Search Input -->
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" 
+                       id="liveSearch" 
+                       placeholder="Live search tyre / type / bucket..."
+                       class="search-input">
+            </div>
+
+            <div class="flex gap-2 flex-wrap sm:flex-nowrap">
+                <button type="submit" class="filter-btn">
+                    <i class="fas fa-filter"></i> Apply
+                </button>
+                <a href="{% url 'cycletyre_entries_log' %}" class="reset-btn">
+                    <i class="fas fa-undo-alt"></i> Reset
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="table-container" id="entries-table-wrapper">
+        <div class="table-wrapper">
+            <table class="entries-table" id="entries-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Tyre</th>
+                        <th>Type</th>
+                        <th>Bucket</th>
+                        <th class="text-right">Qty</th>
+                        <th>Bill No.</th>
+                        <th>User</th>
+                        <th>Remark</th>
+                    </tr>
+                </thead>
+                <tbody id="entries-body">
+                    {% for e in entries %}
+                    <tr class="entry-row"
+                        data-tyre="{{ e.tyre_item|lower }}"
+                        data-type="{{ e.entry_type|lower }}"
+                        data-bucket="{{ e.get_bucket_display|lower }}"
+                        data-user="{{ e.user.username|lower|default:'' }}"
+                        data-remark="{{ e.remark|lower|default:'' }}"
+                        data-bill="{{ e.bill_number|lower|default:'' }}">
+                        <td class="text-slate-500">
+                            <i class="fas fa-calendar-day mr-1 text-slate-300"></i>
+                            {{ e.date|date:"d-M-Y" }}
+                        </td>
+                        <td class="font-medium text-slate-700">{{ e.tyre_item }}</td>
+                        <td>
+                            <span class="type-badge 
+                                {% if e.entry_type == "production" %}type-production
+                                {% elif e.entry_type == "sale" %}type-sale
+                                {% else %}type-adjustment{% endif %}">
+                                <i class="fas 
+                                    {% if e.entry_type == "production" %}fa-industry
+                                    {% elif e.entry_type == "sale" %}fa-shopping-cart
+                                    {% else %}fa-sliders-h{% endif %}">
+                                </i>
+                                {{ e.entry_type|title }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="bucket-badge">
+                                <i class="fas fa-warehouse"></i>
+                                {{ e.get_bucket_display }}
+                            </span>
+                        </td>
+                        <td class="text-right">
+                            <span class="{% if e.quantity < 0 %}qty-negative{% else %}qty-positive{% endif %}">
+                                {% if e.entry_type == "sale" %}-{% endif %}{{ e.quantity|stringformat:"+d" }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if e.bill_number %}
+                            <span class="bill-number">
+                                <i class="fas fa-receipt"></i>
+                                {{ e.bill_number }}
+                            </span>
+                            {% else %}
+                            <span class="text-slate-300">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="user-badge">
+                                <i class="fas fa-user-circle"></i>
+                                {{ e.user.username|default:"-" }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="remark-text" title="{{ e.remark|default:'-' }}">
+                                {{ e.remark|default:"-" }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr id="empty-row">
+                        <td colspan="8" class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p class="text-base">No entries found.</p>
+                            <p class="text-sm text-slate-400">Try adjusting your filters or add new entries.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// Live Search Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('liveSearch');
+    const rows = document.querySelectorAll('.entry-row');
+    const emptyRow = document.getElementById('empty-row');
+
+    // Animate on load
+    const cards = document.querySelectorAll('.filter-card, .table-container');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100 + (index * 150));
+    });
+
+    // Live search handler
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function(e) {
+            const searchTerm = this.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const tyre = row.dataset.tyre || '';
+                const type = row.dataset.type || '';
+                const bucket = row.dataset.bucket || '';
+                const user = row.dataset.user || '';
+                const remark = row.dataset.remark || '';
+                const bill = row.dataset.bill || '';
+
+                const searchData = `${tyre} ${type} ${bucket} ${user} ${remark} ${bill}`;
+
+                if (searchTerm === '' || searchData.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            if (emptyRow) {
+                if (visibleCount === 0) {
+                    emptyRow.style.display = '';
+                } else {
+                    emptyRow.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    // Clear search on reset
+    document.querySelector('.reset-btn').addEventListener('click', function(e) {
+        setTimeout(() => {
+            searchInput.value = '';
+            searchInput.dispatchEvent(new Event('keyup'));
+        }, 100);
+    });
+});
+</script>
+{% endblock %}

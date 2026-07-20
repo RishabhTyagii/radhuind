@@ -1,0 +1,61 @@
+{% extends "base_layout.html" %}
+{% load static %}
+
+{% block title %}Radhu Industries - Cycle Tyre Stock{% endblock %}
+
+{% block nav_desktop %}
+  <a href="{% url 'home' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2">
+    <i class="fas fa-home text-slate-300"></i> Home
+  </a>
+  
+  <span class="text-slate-500">|</span>
+
+  <a href="{% url 'cycletyre_dashboard' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2">
+    <i class="fas fa-warehouse text-slate-300"></i> Stock
+  </a>
+  <a href="{% url 'cycletyre_add_production' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2">
+    <i class="fas fa-plus-circle text-slate-300"></i> Production
+  </a>
+  <a href="{% url 'cycletyre_add_sale' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2">
+    <i class="fas fa-shopping-cart text-slate-300"></i> Sale
+  </a>
+  <a href="{% url 'cycletyre_add_adjustment' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2">
+    <i class="fas fa-sliders-h text-slate-300"></i> Adjust
+  </a>
+  <a href="{% url 'cycletyre_entries_log' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2">
+    <i class="fas fa-history text-slate-300"></i> Entries
+  </a>
+  <a href="{% url 'cycletyre_monthly_report' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2">
+    <i class="fas fa-chart-bar text-slate-300"></i> Report
+  </a>
+  <a href="{% url 'cycletyre_add_item' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2 bg-white/10 hover:bg-white/20">
+    <i class="fas fa-plus-circle text-slate-300"></i> New Tyre
+  </a>
+{% endblock %}
+
+{% block nav_mobile %}
+  <a href="{% url 'home' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 flex items-center gap-2">
+    <i class="fas fa-home text-slate-300"></i> Home
+  </a>
+  <a href="{% url 'cycletyre_dashboard' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 flex items-center gap-2">
+    <i class="fas fa-warehouse text-slate-300"></i> Stock
+  </a>
+  <a href="{% url 'cycletyre_add_production' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 flex items-center gap-2">
+    <i class="fas fa-plus-circle text-slate-300"></i> Prod
+  </a>
+  <a href="{% url 'cycletyre_add_sale' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 flex items-center gap-2">
+    <i class="fas fa-shopping-cart text-slate-300"></i> Sale
+  </a>
+  <a href="{% url 'cycletyre_add_adjustment' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 flex items-center gap-2">
+    <i class="fas fa-sliders-h text-slate-300"></i> Adjust
+  </a>
+  <a href="{% url 'cycletyre_entries_log' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 flex items-center gap-2">
+    <i class="fas fa-history text-slate-300"></i> Entries
+  </a>
+  <a href="{% url 'cycletyre_monthly_report' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 flex items-center gap-2">
+    <i class="fas fa-chart-bar text-slate-300"></i> Report
+  </a>
+  <a href="{% url 'cycletyre_add_item' %}" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 flex items-center gap-2">
+    <i class="fas fa-plus-circle text-slate-300"></i> +Tyre
+  </a>
+{% endblock %}

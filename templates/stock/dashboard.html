@@ -1,0 +1,395 @@
+{% extends "stock/base.html" %}
+{% block content %}
+{% load static %}
+
+<style>
+    /* Dashboard Specific Styles */
+    .dashboard-container {
+        padding: 20px 0;
+    }
+
+    /* Stat Cards - Premium Glass */
+    .stat-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 20px 24px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+    }
+    .stat-card:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+        border-color: rgba(59, 130, 246, 0.2);
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, transparent, rgba(59,130,246,0.05), transparent);
+        transform: rotate(45deg);
+        transition: all 0.5s ease;
+    }
+    .stat-card:hover::before {
+        transform: rotate(45deg) scale(1.5);
+    }
+
+    /* Stat Icons */
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+    .stat-icon-production { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .stat-icon-dispatch { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .stat-icon-month-production { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .stat-icon-month-dispatch { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+
+    /* Stat Number with gradient */
+    .stat-number {
+        font-size: 28px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1e293b, #334155);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .stat-number-green { background: linear-gradient(135deg, #10b981, #059669); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-number-red { background: linear-gradient(135deg, #ef4444, #dc2626); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-number-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-number-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* Search Bar - Premium */
+    .search-container {
+        position: relative;
+        flex: 1;
+        max-width: 420px;
+    }
+    .search-input {
+        width: 100%;
+        padding: 12px 16px 12px 48px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid rgba(226, 232, 240, 0.8);
+        border-radius: 16px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        outline: none;
+        color: #1e293b;
+    }
+    .search-input:focus {
+        border-color: rgba(59, 130, 246, 0.4);
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.08);
+        background: white;
+    }
+    .search-input::placeholder {
+        color: #94a3b8;
+    }
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+    .search-container:focus-within .search-icon {
+        color: #3b82f6;
+    }
+
+    /* Table Container - Premium Glass */
+    .table-container {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+    .table-container:hover {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Table Header */
+    .table-header {
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        color: white;
+    }
+    .table-header th {
+        padding: 14px 16px;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        position: relative;
+    }
+    .table-header th:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 20%;
+        height: 60%;
+        width: 1px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Table Rows */
+    .table-row {
+        transition: all 0.2s ease;
+        border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    }
+    .table-row:hover {
+        background: rgba(59, 130, 246, 0.04);
+        transform: scale(1.002);
+    }
+    .table-row td {
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #334155;
+    }
+
+    /* Table Footer */
+    .table-footer {
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        font-weight: 700;
+    }
+    .table-footer td {
+        padding: 14px 16px;
+        font-size: 14px;
+        color: #0f172a;
+    }
+
+    /* Stock Numbers */
+    .stock-green { color: #10b981; font-weight: 600; }
+    .stock-red { color: #ef4444; font-weight: 600; }
+    .stock-blue { color: #3b82f6; font-weight: 600; }
+    .stock-purple { color: #8b5cf6; font-weight: 600; }
+    .stock-total { color: #0f172a; font-weight: 800; font-size: 15px; }
+
+    /* Empty State */
+    .empty-state {
+        padding: 60px 20px;
+        text-align: center;
+        color: #94a3b8;
+    }
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .stat-card {
+            padding: 16px;
+        }
+        .stat-number {
+            font-size: 22px;
+        }
+        .search-input {
+            font-size: 13px;
+            padding: 10px 14px 10px 40px;
+        }
+        .table-container {
+            border-radius: 14px;
+        }
+        .table-header th,
+        .table-row td,
+        .table-footer td {
+            padding: 10px 12px;
+            font-size: 12px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .stat-card {
+            padding: 14px;
+        }
+        .stat-number {
+            font-size: 20px;
+        }
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+        }
+    }
+</style>
+
+<div class="dashboard-container">
+    <!-- Stats Section -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-production">
+                <i class="fas fa-industry"></i>
+            </div>
+            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Today's Production</p>
+            <p class="stat-number stat-number-green">{{ today_production }}</p>
+            <div class="mt-2 text-[10px] text-slate-400">
+                <i class="fas fa-calendar-day mr-1"></i> {{ today|date:"d M" }}
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-dispatch">
+                <i class="fas fa-truck"></i>
+            </div>
+            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Today's Dispatch</p>
+            <p class="stat-number stat-number-red">{{ today_dispatch }}</p>
+            <div class="mt-2 text-[10px] text-slate-400">
+                <i class="fas fa-calendar-day mr-1"></i> {{ today|date:"d M" }}
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-month-production">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">This Month's Production</p>
+            <p class="stat-number stat-number-blue">{{ month_production }}</p>
+            <div class="mt-2 text-[10px] text-slate-400">
+                <i class="fas fa-calendar-alt mr-1"></i> {{ today|date:"F Y" }}
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-month-dispatch">
+                <i class="fas fa-shipping-fast"></i>
+            </div>
+            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">This Month's Dispatch</p>
+            <p class="stat-number stat-number-purple">{{ month_dispatch }}</p>
+            <div class="mt-2 text-[10px] text-slate-400">
+                <i class="fas fa-calendar-alt mr-1"></i> {{ today|date:"F Y" }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Header & Search Section -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div class="flex items-center gap-3">
+            <div class="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
+            <h1 class="text-xl font-bold text-slate-800">Current Stock</h1>
+            <span class="text-sm text-slate-400 font-light">| {{ today|date:"d M Y" }}</span>
+        </div>
+
+        <div class="flex items-center gap-3 w-full md:w-auto">
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" name="q" value="{{ q }}" 
+                    placeholder="Search Tyre / Pattern / Type..."
+                    hx-get="{% url 'dashboard' %}"
+                    hx-trigger="keyup changed delay:300ms, search"
+                    hx-target="#stock-table-wrapper"
+                    hx-select="#stock-table-wrapper"
+                    hx-swap="outerHTML"
+                    hx-push-url="true"
+                    class="search-input">
+            </div>
+            <button class="bg-slate-800 text-white rounded-xl px-5 py-2.5 text-sm font-medium hover:bg-slate-700 transition-all hover:scale-105 shadow-lg flex items-center gap-2">
+                <i class="fas fa-sync-alt"></i>
+                <span class="hidden sm:inline">Refresh</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div id="stock-table-wrapper">
+        <div class="table-container">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="table-header">
+                        <tr>
+                            <th class="text-left">TYRE</th>
+                            <th class="text-left">PATTERN</th>
+                            <th class="text-left">TYPE</th>
+                            <th class="text-right">Monthly Curing</th>
+                            <th class="text-right">Repair</th>
+                            <th class="text-right">RFM OK</th>
+                            <th class="text-right">2025 Old</th>
+                            <th class="text-right">STOCK</th>
+                            <th class="text-right">On Hold/Export</th>
+                            <th class="text-right font-bold">TOTAL STOCK</th>
+                            <th class="text-right">Monthly Despatch</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr class="table-row">
+                            <td class="font-semibold text-slate-800">{{ item.tyre }}</td>
+                            <td>{{ item.pattern }}</td>
+                            <td>
+                                <span class="inline-block px-2 py-1 rounded-full text-[10px] font-medium
+                                    {% if item.type == 'New' %}bg-green-100 text-green-700
+                                    {% elif item.type == 'Used' %}bg-yellow-100 text-yellow-700
+                                    {% else %}bg-blue-100 text-blue-700{% endif %}">
+                                    {{ item.type }}
+                                </span>
+                            </td>
+                            <td class="text-right stock-green">{{ item.month_curing }}</td>
+                            <td class="text-right">{{ item.repair_tyre_stock }}</td>
+                            <td class="text-right">{{ item.rfm_ok_tyre }}</td>
+                            <td class="text-right">{{ item.old_tyres_2025 }}</td>
+                            <td class="text-right stock-blue">{{ item.stock }}</td>
+                            <td class="text-right stock-purple">{{ item.on_hold_export }}</td>
+                            <td class="text-right stock-total">{{ item.total_stock }}</td>
+                            <td class="text-right stock-red">{{ item.month_despatch }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="11" class="empty-state">
+                                <i class="fas fa-search"></i>
+                                <p class="text-base">Koi tyre nahi mila.</p>
+                                <p class="text-sm text-slate-400">Search karke dekhein ya naya tyre add karein.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% if items %}
+                    <tfoot class="table-footer">
+                        <tr>
+                            <td colspan="3" class="text-slate-600">TOTAL</td>
+                            <td class="text-right stock-green">{{ total_curing }}</td>
+                            <td class="text-right">{{ total_repair }}</td>
+                            <td class="text-right">{{ total_rfm }}</td>
+                            <td class="text-right">{{ total_old }}</td>
+                            <td class="text-right stock-blue">{{ total_stock_col }}</td>
+                            <td class="text-right stock-purple">{{ total_hold }}</td>
+                            <td class="text-right text-slate-900 font-extrabold">{{ grand_total }}</td>
+                            <td class="text-right stock-red">{{ total_despatch }}</td>
+                        </tr>
+                    </tfoot>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Add smooth scroll to table on load
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.querySelector('.table-container');
+    if (table) {
+        table.style.opacity = '0';
+        table.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            table.style.transition = 'all 0.5s ease';
+            table.style.opacity = '1';
+            table.style.transform = 'translateY(0)';
+        }, 100);
+    }
+});
+</script>
+{% endblock %}

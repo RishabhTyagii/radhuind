@@ -1,0 +1,296 @@
+{% extends "cycletube/base.html" %}
+{% block content %}
+{% load static %}
+
+<style>
+    /* Cycle Tube Dashboard - Premium Green Theme */
+    .dashboard-container { padding: 20px 0; }
+
+    /* Stat Cards - Premium Glass */
+    .stat-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        padding: 20px 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+        border-color: rgba(16, 185, 129, 0.2);
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #10b981, #059669, #10b981);
+        background-size: 200% 100%;
+        animation: gradientSlide 3s ease-in-out infinite;
+    }
+    @keyframes gradientSlide {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    /* Stat Icons */
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+    .stat-icon-production { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .stat-icon-sale { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .stat-icon-month-production { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .stat-icon-month-sale { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+
+    /* Stat Numbers - Gradient */
+    .stat-number {
+        font-size: 28px;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1e293b, #334155);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .stat-number-green { background: linear-gradient(135deg, #10b981, #059669); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-number-red { background: linear-gradient(135deg, #ef4444, #dc2626); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-number-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .stat-number-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* Live Search - Premium */
+    .search-container { position: relative; flex: 1; max-width: 420px; }
+    .search-input {
+        width: 100%; padding: 12px 16px 12px 48px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid rgba(226, 232, 240, 0.8);
+        border-radius: 16px; font-size: 14px;
+        transition: all 0.3s ease; outline: none; color: #1e293b;
+    }
+    .search-input:focus {
+        border-color: rgba(16, 185, 129, 0.4);
+        box-shadow: 0 0 30px rgba(16, 185, 129, 0.08);
+        background: white;
+    }
+    .search-input::placeholder { color: #94a3b8; }
+    .search-icon {
+        position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+        color: #94a3b8; font-size: 16px; transition: all 0.3s ease;
+    }
+    .search-container:focus-within .search-icon { color: #10b981; }
+
+    /* Table Container - Premium Glass */
+    .table-container {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px; overflow: hidden;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+    .table-container:hover { box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1); }
+
+    /* Table Header - Gradient */
+    .table-header {
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        color: white;
+    }
+    .table-header th {
+        padding: 14px 16px; font-weight: 600; font-size: 12px;
+        text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .table-header th:not(:last-child)::after {
+        content: ''; position: absolute; right: 0; top: 20%;
+        height: 60%; width: 1px; background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Table Rows */
+    .table-row {
+        transition: all 0.2s ease; border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+    }
+    .table-row:hover {
+        background: rgba(16, 185, 129, 0.04); transform: scale(1.002);
+    }
+    .table-row td { padding: 12px 16px; font-size: 14px; color: #334155; }
+
+    /* Table Footer */
+    .table-footer {
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        font-weight: 700;
+    }
+    .table-footer td { padding: 14px 16px; font-size: 14px; color: #0f172a; }
+
+    /* Color Classes */
+    .stock-green { color: #10b981; font-weight: 600; }
+    .stock-red { color: #ef4444; font-weight: 600; }
+    .stock-blue { color: #3b82f6; font-weight: 600; }
+    .stock-purple { color: #8b5cf6; font-weight: 600; }
+
+    /* Empty State */
+    .empty-state { padding: 60px 20px; text-align: center; color: #94a3b8; }
+    .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+
+    /* Type Badge */
+    .type-badge {
+        display: inline-block; padding: 2px 10px; border-radius: 12px;
+        font-size: 11px; font-weight: 600;
+    }
+    .type-standard { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .type-heavy { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+    .type-sports { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .stat-card { padding: 16px; }
+        .stat-number { font-size: 22px; }
+        .search-input { font-size: 13px; padding: 10px 14px 10px 40px; }
+        .table-header th, .table-row td, .table-footer td { padding: 10px 12px; font-size: 12px; }
+    }
+</style>
+
+<div class="dashboard-container">
+    <!-- Stats Section -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-production"><i class="fas fa-industry"></i></div>
+            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Today Production</p>
+            <p class="stat-number stat-number-green">{{ today_production }}</p>
+            <div class="mt-2 text-[10px] text-slate-400"><i class="fas fa-calendar-day mr-1"></i> {{ today|date:"d M" }}</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-sale"><i class="fas fa-shopping-cart"></i></div>
+            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Today Sale</p>
+            <p class="stat-number stat-number-red">{{ today_sale }}</p>
+            <div class="mt-2 text-[10px] text-slate-400"><i class="fas fa-calendar-day mr-1"></i> {{ today|date:"d M" }}</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-month-production"><i class="fas fa-chart-line"></i></div>
+            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Monthly Production</p>
+            <p class="stat-number stat-number-blue">{{ month_production }}</p>
+            <div class="mt-2 text-[10px] text-slate-400"><i class="fas fa-calendar-alt mr-1"></i> {{ today|date:"F Y" }}</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-month-sale"><i class="fas fa-shipping-fast"></i></div>
+            <p class="text-xs text-slate-500 font-medium uppercase tracking-wider">Monthly Sale</p>
+            <p class="stat-number stat-number-purple">{{ month_sale }}</p>
+            <div class="mt-2 text-[10px] text-slate-400"><i class="fas fa-calendar-alt mr-1"></i> {{ today|date:"F Y" }}</div>
+        </div>
+    </div>
+
+    <!-- Header & Live Search -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div class="flex items-center gap-3">
+            <div class="w-1 h-8 bg-gradient-to-b from-emerald-500 to-green-500 rounded-full"></div>
+            <h1 class="text-xl font-bold text-slate-800">Cycle Tube Stock</h1>
+            <span class="text-sm text-slate-400 font-light">| {{ today|date:"d M Y" }}</span>
+        </div>
+
+        <div class="flex items-center gap-3 w-full md:w-auto">
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" name="q" value="{{ q }}" 
+                    placeholder="Search Size / Type / Brand..."
+                    hx-get="{% url 'tube_dashboard' %}"
+                    hx-trigger="keyup changed delay:300ms, search"
+                    hx-target="#stock-table-wrapper"
+                    hx-select="#stock-table-wrapper"
+                    hx-swap="outerHTML"
+                    hx-push-url="true"
+                    class="search-input">
+            </div>
+            <button class="bg-slate-800 text-white rounded-xl px-5 py-2.5 text-sm font-medium hover:bg-slate-700 transition-all hover:scale-105 shadow-lg flex items-center gap-2">
+                <i class="fas fa-sync-alt"></i>
+                <span class="hidden sm:inline">Refresh</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div id="stock-table-wrapper">
+        <div class="table-container">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="table-header">
+                        <tr>
+                            <th class="text-left">Size</th>
+                            <th class="text-left">Type</th>
+                            <th class="text-left">Brand</th>
+                            <th class="text-right">Monthly Production</th>
+                            <th class="text-right">Monthly Sale</th>
+                            <th class="text-right">Stock</th>
+                            <th class="text-right">R.F.M. Stock</th>
+                            <th class="text-right font-bold">Total Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr class="table-row">
+                            <td class="font-semibold text-slate-800">{{ item.size }}</td>
+                            <td>
+                                <span class="type-badge 
+                                    {% if item.type == 'Standard' %}type-standard
+                                    {% elif item.type == 'Heavy' %}type-heavy
+                                    {% elif item.type == 'Sports' %}type-sports
+                                    {% else %}type-standard{% endif %}">
+                                    {{ item.type }}
+                                </span>
+                            </td>
+                            <td>{{ item.brand }}</td>
+                            <td class="text-right stock-green">{{ item.month_production }}</td>
+                            <td class="text-right stock-red">{{ item.month_sale }}</td>
+                            <td class="text-right stock-blue">{{ item.stock }}</td>
+                            <td class="text-right stock-purple">{{ item.rfm_stock }}</td>
+                            <td class="text-right font-bold text-slate-900">{{ item.total_stock }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="8" class="empty-state"><i class="fas fa-inbox"></i><p>No cycle tubes found.</p></td></tr>
+                        {% endfor %}
+                    </tbody>
+                    {% if items %}
+                    <tfoot class="table-footer">
+                        <tr>
+                            <td colspan="3" class="text-slate-600">TOTAL</td>
+                            <td class="text-right stock-green">{{ month_production }}</td>
+                            <td class="text-right stock-red">{{ month_sale }}</td>
+                            <td class="text-right stock-blue">{{ total_stock_col }}</td>
+                            <td class="text-right stock-purple">{{ total_rfm_col }}</td>
+                            <td class="text-right text-slate-900 font-extrabold">{{ grand_total }}</td>
+                        </tr>
+                    </tfoot>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Animate on load
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.stat-card, .table-container');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100 + (index * 150));
+    });
+});
+</script>
+{% endblock %}

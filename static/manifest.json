@@ -1,0 +1,21 @@
+{
+  "name": "Radhu Industries Stock Portal",
+  "short_name": "Radhu Stock",
+  "start_url": "/?v=2",
+  "display": "standalone",
+  "background_color": "#914ceb",
+  "theme_color": "#914ceb",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/static/icon/radhulogo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/icon/radhulogo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

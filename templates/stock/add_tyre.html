@@ -1,0 +1,17 @@
+{% extends "stock/base.html" %}
+{% block content %}
+<div class="max-w-md mx-auto bg-white rounded-xl shadow p-6">
+  <h1 class="text-lg font-bold mb-4">Naya Tyre Add Karein</h1>
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+    {% for field in form %}
+    <div>
+      <label class="block text-sm font-medium mb-1">{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}<p class="text-red-600 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+    </div>
+    {% endfor %}
+    <button type="submit" class="w-full bg-slate-800 text-white rounded-lg py-2 font-medium hover:bg-slate-900">Save</button>
+  </form>
+</div>
+{% endblock %}

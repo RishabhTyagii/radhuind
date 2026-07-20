@@ -1,0 +1,391 @@
+{% extends "base_layout.html" %}
+{% load static %}
+
+{% block title %}Add Entry - {{ material.name }}{% endblock %}
+
+{% block nav_desktop %}
+  <a href="{% url 'home' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-home"></i> Home</a>
+  <a href="" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-layer-group"></i> Groups</a>
+  <a href="" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-plus-circle text-emerald-400"></i> Add Material</a>
+{% endblock %}
+
+{% block nav_mobile %}
+  <a href="{% url 'home' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-home mr-1"></i>Home</a>
+  <a href="" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20"><i class="fas fa-layer-group mr-1"></i>Groups</a>
+  <a href="" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-plus-circle mr-1"></i>Add</a>
+{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<style>
+    /* Add Entry Styles */
+    .entry-container {
+        padding: 40px 0;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 70vh;
+    }
+
+    /* Entry Card - Premium Glass */
+    .entry-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        max-width: 560px;
+    }
+    .entry-card:hover {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        transform: translateY(-4px);
+    }
+    .entry-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+        background-size: 300% 100%;
+        animation: gradientSlide 4s ease-in-out infinite;
+    }
+    @keyframes gradientSlide {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+
+    /* Entry Icon */
+    .entry-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(139, 92, 246, 0.12));
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        color: #3b82f6;
+        margin-bottom: 16px;
+        transition: all 0.3s ease;
+    }
+    .entry-card:hover .entry-icon {
+        transform: scale(1.05) rotate(-5deg);
+    }
+
+    /* Entry Badge */
+    .entry-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        background: rgba(59, 130, 246, 0.12);
+        color: #3b82f6;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+    }
+
+    /* Page Header */
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    .page-header h1 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+    .page-header .subtitle {
+        font-size: 13px;
+        color: #64748b;
+        font-weight: 400;
+        display: block;
+        margin-top: 2px;
+    }
+    .page-header .breadcrumb {
+        font-size: 12px;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .page-header .breadcrumb a {
+        color: #3b82f6;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .page-header .breadcrumb a:hover {
+        color: #2563eb;
+        text-decoration: underline;
+    }
+
+    /* Form Inputs - Premium */
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 6px;
+        letter-spacing: 0.3px;
+    }
+    .form-label i {
+        margin-right: 6px;
+        color: #3b82f6;
+    }
+    .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(241, 245, 249, 0.6);
+        border: 2px solid rgba(226, 232, 240, 0.6);
+        border-radius: 14px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        outline: none;
+        color: #1e293b;
+    }
+    .form-input:focus {
+        border-color: rgba(59, 130, 246, 0.4);
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.06);
+        background: white;
+    }
+    .form-input::placeholder {
+        color: #94a3b8;
+    }
+
+    /* Select Dropdown Styling */
+    select.form-input {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 36px;
+    }
+
+    /* Error Text */
+    .error-text {
+        color: #ef4444;
+        font-size: 12px;
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Help Text */
+    .help-text {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 4px;
+    }
+
+    /* Submit Button - Premium Gradient */
+    .submit-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+        background-size: 200% 200%;
+        border: none;
+        border-radius: 16px;
+        color: white;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        animation: gradientMove 3s ease-in-out infinite;
+        position: relative;
+        overflow: hidden;
+    }
+    @keyframes gradientMove {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    .submit-btn:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4);
+    }
+    .submit-btn:active {
+        transform: scale(0.98);
+    }
+    .submit-btn::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15), transparent);
+        transform: rotate(45deg);
+        animation: btnShine 3s ease-in-out infinite;
+    }
+    @keyframes btnShine {
+        0% { transform: translateX(-100%) rotate(45deg); }
+        100% { transform: translateX(100%) rotate(45deg); }
+    }
+
+    /* Pulse ring on button */
+    .submit-btn::before {
+        content: '';
+        position: absolute;
+        inset: -4px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+        z-index: -1;
+        opacity: 0;
+        animation: pulseRing 3s ease-in-out infinite;
+        filter: blur(10px);
+    }
+    @keyframes pulseRing {
+        0%, 100% { opacity: 0; transform: scale(1); }
+        50% { opacity: 0.3; transform: scale(1.05); }
+    }
+
+    /* Info Note */
+    .info-note {
+        background: rgba(59, 130, 246, 0.08);
+        border: 1px solid rgba(59, 130, 246, 0.12);
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 13px;
+        color: #475569;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .info-note i {
+        color: #3b82f6;
+        margin-top: 2px;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+        .entry-card {
+            padding: 28px 20px;
+            margin: 0 16px;
+            max-width: 100%;
+        }
+        .entry-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 22px;
+        }
+        .form-input {
+            padding: 10px 14px;
+            font-size: 13px;
+        }
+        .submit-btn {
+            padding: 12px;
+            font-size: 14px;
+        }
+        .page-header h1 {
+            font-size: 18px;
+        }
+    }
+</style>
+
+<div class="entry-container">
+    <div class="entry-card">
+        <!-- Icon -->
+        <div class="entry-icon">
+            <i class="fas fa-pen-to-square"></i>
+        </div>
+        
+        <!-- Badge -->
+        <span class="entry-badge"><i class="fas fa-plus-circle"></i> New Entry</span>
+        
+        <!-- Header -->
+        <div class="page-header">
+            <div>
+                <h1>{{ material.name }}</h1>
+                <div class="breadcrumb">
+                    <a href=""><i class="fas fa-layer-group"></i> Groups</a>
+                    <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
+                    <a href="">{{ material.group.name }}</a>
+                    <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
+                    <span>{{ material.name }}</span>
+                </div>
+                <span class="subtitle">Add a new stock entry for this material</span>
+            </div>
+        </div>
+
+        <!-- Info Note -->
+        <div class="info-note">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                Record received or used quantity for this material.
+                <br>
+                <span class="text-slate-400 text-xs">Opening balance will be auto-calculated from previous entries.</span>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas 
+                        {% if 'received' in field.name or 'quantity' in field.name %}fa-box
+                        {% elif 'date' in field.name %}fa-calendar
+                        {% elif 'received_by' in field.name %}fa-user
+                        {% elif 'used' in field.name %}fa-minus
+                        {% elif 'remark' in field.name %}fa-comment
+                        {% else %}fa-tag{% endif %}">
+                    </i>
+                    {{ field.label }}
+                    {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <p class="error-text">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ field.errors.0 }}
+                </p>
+                {% endif %}
+                {% if field.help_text %}
+                <p class="help-text">{{ field.help_text }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-save mr-2"></i>
+                Save Entry
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+// Animate card on load
+document.addEventListener('DOMContentLoaded', function() {
+    const card = document.querySelector('.entry-card');
+    if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100);
+    }
+});
+</script>
+{% endblock %}
