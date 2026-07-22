@@ -1,0 +1,38 @@
+{% extends "tallysync/base.html" %}
+{% block content %}
+<h1 class="text-lg font-bold mb-4">Tally Sync Log</h1>
+<p class="text-sm text-slate-500 mb-4">Yahan dikhta hai ki Tally se aaya har invoice sahi se process hua ya nahi — agar koi item unmapped ya kam stock ki wajah se fail hua ho to yahan warning dikhegi.</p>
+
+<div class="bg-white rounded-xl shadow overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-800 text-white">
+      <tr>
+        <th class="text-left px-3 py-2">Time</th>
+        <th class="text-left px-3 py-2">Level</th>
+        <th class="text-left px-3 py-2">Invoice</th>
+        <th class="text-left px-3 py-2">Message</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="px-3 py-2">{{ log.created_at|date:"d-M-Y H:i" }}</td>
+        <td class="px-3 py-2">
+          {% if log.level == "error" %}
+            <span class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs">Error</span>
+          {% elif log.level == "warning" %}
+            <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs">Warning</span>
+          {% else %}
+            <span class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs">Info</span>
+          {% endif %}
+        </td>
+        <td class="px-3 py-2">{{ log.invoice.voucher_number|default:"-" }}</td>
+        <td class="px-3 py-2 text-slate-600">{{ log.message }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="px-3 py-6 text-center text-slate-400">Abhi tak koi log nahi hai.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base_layout.html" %}
+{% block title %}Radhu Industries - Tally Sync{% endblock %}
+
+{% block nav_desktop %}
+  <a href="{% url 'home' %}" class="px-3 py-2 rounded hover:bg-slate-700">🏠 Home</a>
+  <span class="px-2 text-slate-500">|</span>
+  <a href="{% url 'tally_sales_summary' %}" class="px-3 py-2 rounded hover:bg-slate-700">Sales &amp; GST Summary</a>
+  <a href="{% url 'tally_mapping_list' %}" class="px-3 py-2 rounded hover:bg-slate-700">Item Mapping</a>
+  <a href="{% url 'tally_add_mapping' %}" class="px-3 py-2 rounded hover:bg-slate-700">+ New Mapping</a>
+  <a href="{% url 'tally_sync_log' %}" class="px-3 py-2 rounded hover:bg-slate-700">Sync Log</a>
+{% endblock %}
+
+{% block nav_mobile %}
+  <a href="{% url 'home' %}" class="px-3 py-1.5 rounded hover:bg-slate-700">🏠 Home</a>
+  <a href="{% url 'tally_sales_summary' %}" class="px-3 py-1.5 rounded hover:bg-slate-700">Sales/GST</a>
+  <a href="{% url 'tally_mapping_list' %}" class="px-3 py-1.5 rounded hover:bg-slate-700">Mapping</a>
+  <a href="{% url 'tally_add_mapping' %}" class="px-3 py-1.5 rounded hover:bg-slate-700">+ Mapping</a>
+  <a href="{% url 'tally_sync_log' %}" class="px-3 py-1.5 rounded hover:bg-slate-700">Log</a>
+{% endblock %}

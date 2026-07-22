@@ -37,10 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "rest_framework",
     'stock',
     "cycletube",
     'rawmaterials',
     "cycletyres",
+    'tallysync',
 ]
 
 MIDDLEWARE = [
@@ -78,8 +80,15 @@ WSGI_APPLICATION = 'radhu.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'radhudb',  # same as schema you created
+        'USER': 'radhudb',
+        'PASSWORD': 'Tarun231',
+        'HOST': 'radhudb.c3skesa0esud.ap-south-1.rds.amazonaws.com',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
@@ -129,3 +138,4 @@ STATICFILES_DIRS = [
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
+TALLY_SYNC_API_KEY = 'fc2e1029465c118d144c93a093c0efd2cfa2d40a258c32c8'

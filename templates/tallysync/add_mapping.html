@@ -1,0 +1,40 @@
+{% extends "tallysync/base.html" %}
+{% block content %}
+<div class="max-w-lg mx-auto bg-white rounded-xl shadow p-6">
+  <h1 class="text-lg font-bold mb-4">Naya Item Mapping Add Karein</h1>
+  <p class="text-sm text-slate-500 mb-4">
+    Tally mein jo item ka exact naam hai wahi yahan likho (case chal jayegi, spelling exact honi chahiye),
+    aur neeche dropdown se batao ye humare portal ke kaunse item se match karta hai.
+  </p>
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+    <div>
+      <label class="block text-sm font-medium mb-1">Tally Item Name (exact)</label>
+      <input type="text" name="tally_item_name" required placeholder="e.g. 275-18 PANTHER TT"
+             class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-600">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">Humare Portal ka Item</label>
+      <select name="item_choice" required class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-600">
+        <option value="">-- Select --</option>
+        <optgroup label="Auto Tyre">
+          {% for item in tyre_items %}
+          <option value="tyre:{{ item.id }}">{{ item }}</option>
+          {% endfor %}
+        </optgroup>
+        <optgroup label="Cycle Tube">
+          {% for item in tube_items %}
+          <option value="tube:{{ item.id }}">{{ item }}</option>
+          {% endfor %}
+        </optgroup>
+        <optgroup label="Cycle Tyre">
+          {% for item in cycletyre_items %}
+          <option value="cycletyre:{{ item.id }}">{{ item }}</option>
+          {% endfor %}
+        </optgroup>
+      </select>
+    </div>
+    <button type="submit" class="w-full bg-slate-800 text-white rounded-lg py-2 font-medium hover:bg-slate-900">Save Mapping</button>
+  </form>
+</div>
+{% endblock %}

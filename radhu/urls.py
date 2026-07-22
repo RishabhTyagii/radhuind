@@ -11,4 +11,5 @@ urlpatterns = [
     path('tube/', include('cycletube.urls')),
     path('raw-materials/', include('rawmaterials.urls')),
     path('cycletyre/', include('cycletyres.urls')),
+    path('tallysync/', include('tallysync.urls')),
 ]
