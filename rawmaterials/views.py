@@ -364,12 +364,18 @@ def export_current_stock_excel(request):
     return response
 
 
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from datetime import date    # <-- NEW LINE 3: Import date for today's date
+from .models import StockEntry
+from .forms import TallyFilterForm
 
 @login_required
 def tally_view(request):
 
     form = TallyFilterForm(request.GET or None)
 
+    # ========== CHANGE 1: Sorting order reversed ==========
     entries = (
         StockEntry.objects
         .select_related(
@@ -377,12 +383,13 @@ def tally_view(request):
             "material__group",
             "created_by",
         )
-        .order_by("date", "id")
-    )
+        .order_by("-date", "-id")    # <-- CHANGE: "-date" instead of "date", "-id" instead of "id"
+    )                                #     (Latest date first, then latest id first)
 
     material = None
     from_date = None
     to_date = None
+    today = date.today()    # <-- NEW LINE: Get today's date for highlighting
 
     if form.is_valid():
 
@@ -399,10 +406,15 @@ def tally_view(request):
         if to_date:
             entries = entries.filter(date__lte=to_date)
 
+    # ========== CHANGE 2: Add is_today flag to each entry ==========
+    for entry in entries:    # <-- NEW LOOP: Iterate through all entries
+        entry.is_today = (entry.date == today)    # <-- NEW: Set flag if date matches today
+
     context = {
         "form": form,
         "entries": entries,
         "material": material,
+        "today": today,    # <-- NEW: Pass today to template
     }
 
     return render(

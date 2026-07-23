@@ -30,6 +30,7 @@
         align-items: center;
         gap: 16px;
         margin-bottom: 24px;
+        flex-wrap: wrap;
     }
     .page-header-icon {
         width: 48px;
@@ -235,6 +236,7 @@
     }
     .ledger-table tbody tr {
         transition: all 0.2s ease;
+        cursor: default;
     }
     .ledger-table tbody tr:hover {
         background: rgba(139, 92, 246, 0.04);
@@ -243,6 +245,42 @@
     .ledger-table tbody tr:last-child td {
         border-bottom: none;
     }
+
+    /* ========== TODAY'S DATE HIGHLIGHT ========== */
+    .entry-today {
+        background: linear-gradient(90deg, rgba(139, 92, 246, 0.12), rgba(139, 92, 246, 0.04)) !important;
+        border-left: 4px solid #8b5cf6 !important;
+        position: relative;
+    }
+    .entry-today td {
+        font-weight: 600 !important;
+        color: #1e293b !important;
+    }
+    .entry-today .date-cell {
+        font-weight: 700 !important;
+        color: #7c3aed !important;
+        font-size: 14px !important;
+    }
+    .entry-today .today-badge {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 4px;
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        color: white;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-left: 6px;
+        animation: pulseBadge 2s ease-in-out infinite;
+    }
+    @keyframes pulseBadge {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(0.95); }
+    }
+    /* =========================================== */
 
     /* Value Colors */
     .val-positive { color: #10b981; font-weight: 600; }
@@ -275,6 +313,10 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
         .page-header h1 {
             font-size: 22px;
         }
@@ -310,6 +352,10 @@
         <div>
             <h1>Stock Ledger (Tally)</h1>
             <span class="subtitle">Complete transaction history for all materials</span>
+        </div>
+        <div style="margin-left: auto; font-size: 13px; color: #64748b;">
+            <i class="fas fa-sort-amount-down-alt"></i>
+            Sorted: Latest first
         </div>
     </div>
 
@@ -356,10 +402,15 @@
                 </thead>
                 <tbody>
                     {% for row in entries %}
-                    <tr>
-                        <td class="text-slate-500">
+                    <tr class="{% if row.is_today %}entry-today{% endif %}">
+                        <td class="date-cell">
                             <i class="fas fa-calendar-day mr-1 text-slate-300"></i>
                             {{ row.date|date:"d-M-Y" }}
+                            {% if row.is_today %}
+                                <span class="today-badge">
+                                    <i class="fas fa-calendar-check"></i> TODAY
+                                </span>
+                            {% endif %}
                         </td>
                         <td class="font-medium text-slate-700">{{ row.material.group.name }}</td>
                         <td class="font-medium text-slate-700">{{ row.material.name }}</td>

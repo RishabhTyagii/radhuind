@@ -396,6 +396,28 @@ $(document).ready(function() {
         }, 100);
     }
 
+    // ========== AUTO SET TODAY'S DATE ==========
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayDate = `${year}-${month}-${day}`;
+    
+    // Try to find date input by name, id, or class
+    let dateInput = document.querySelector('input[name="date"]');
+    if (!dateInput) {
+        dateInput = document.querySelector('#id_date');
+    }
+    if (!dateInput) {
+        dateInput = document.querySelector('input[type="date"]');
+    }
+    
+    // Set today's date if input is empty
+    if (dateInput && !dateInput.value) {
+        dateInput.value = todayDate;
+    }
+    // ===========================================
+
     // Initialize Select2
     $('#id_material').select2({
         width: "100%",

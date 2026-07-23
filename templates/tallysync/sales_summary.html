@@ -1,0 +1,80 @@
+{% extends "tallysync/base.html" %}
+{% block content %}
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+  <h1 class="text-lg font-bold">Tally Sales &amp; GST Summary</h1>
+  <form method="get" class="flex gap-2">
+    <input type="month" name="month" value="{{ month_value }}" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm">
+    <button class="bg-slate-800 text-white rounded-lg px-4 py-1.5 text-sm hover:bg-slate-900">Dekhein</button>
+  </form>
+</div>
+
+{% if unmapped_count %}
+<div class="mb-4 px-4 py-2 rounded text-sm bg-amber-100 text-amber-800 border border-amber-300">
+  ⚠️ {{ unmapped_count }} invoice(s) mein kuch items ka stock update nahi ho paaya (unmapped ya kam stock). <a href="{% url 'tally_sync_log' %}" class="underline font-medium">Sync Log</a> mein dekh lo.
+</div>
+{% endif %}
+
+<div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
+  <div class="bg-white rounded-xl shadow p-4">
+    <p class="text-xs text-slate-500">Total Sale (is mahine)</p>
+    <p class="text-xl font-bold text-blue-600">₹{{ total_sale }}</p>
+  </div>
+  <div class="bg-white rounded-xl shadow p-4">
+    <p class="text-xs text-slate-500">Taxable Value</p>
+    <p class="text-xl font-bold">₹{{ total_taxable }}</p>
+  </div>
+  <div class="bg-white rounded-xl shadow p-4">
+    <p class="text-xs text-slate-500">CGST</p>
+    <p class="text-xl font-bold text-green-600">₹{{ total_cgst }}</p>
+  </div>
+  <div class="bg-white rounded-xl shadow p-4">
+    <p class="text-xs text-slate-500">SGST</p>
+    <p class="text-xl font-bold text-green-600">₹{{ total_sgst }}</p>
+  </div>
+  <div class="bg-white rounded-xl shadow p-4">
+    <p class="text-xs text-slate-500">IGST</p>
+    <p class="text-xl font-bold text-green-600">₹{{ total_igst }}</p>
+  </div>
+  <div class="bg-white rounded-xl shadow p-4">
+    <p class="text-xs text-slate-500">Total GST Payable</p>
+    <p class="text-xl font-bold text-red-600">₹{{ total_gst }}</p>
+  </div>
+</div>
+
+<div class="bg-white rounded-xl shadow overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-800 text-white">
+      <tr>
+        <th class="text-left px-3 py-2">Date</th>
+        <th class="text-left px-3 py-2">Voucher No.</th>
+        <th class="text-left px-3 py-2">Party</th>
+        <th class="text-right px-3 py-2">Taxable</th>
+        <th class="text-right px-3 py-2">GST</th>
+        <th class="text-right px-3 py-2">Total</th>
+        <th class="text-left px-3 py-2">Stock Sync</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for inv in invoices %}
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="px-3 py-2">{{ inv.voucher_date|date:"d-M-Y" }}</td>
+        <td class="px-3 py-2 font-medium">{{ inv.voucher_number }}</td>
+        <td class="px-3 py-2">{{ inv.party_name|default:"-" }}</td>
+        <td class="px-3 py-2 text-right">₹{{ inv.taxable_value }}</td>
+        <td class="px-3 py-2 text-right">₹{{ inv.gst_total }}</td>
+        <td class="px-3 py-2 text-right font-bold">₹{{ inv.total_value }}</td>
+        <td class="px-3 py-2">
+          {% if inv.stock_synced %}
+            <span class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs">✓ Synced</span>
+          {% else %}
+            <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs">⚠ Check log</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="px-3 py-6 text-center text-slate-400">Is mahine ke liye Tally se koi invoice sync nahi hui.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
