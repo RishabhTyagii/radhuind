@@ -1,296 +1,328 @@
 {% extends "stock/base.html" %}
-{% block content %}
 {% load static %}
 
+{% block content %}
 <style>
-    /* Production Page Styles */
+    /* Ultra-Modern PyQt/ThinkQt Style */
     .production-container {
         padding: 20px 0;
-        position: relative;
     }
 
-    /* Production Card - Premium Glass */
-    .production-card {
-        background: rgba(255, 255, 255, 0.92);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 24px;
-        padding: 32px;
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
+    /* Cards - Clean, Sharp, Modern */
+    .modern-card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+        border: 1px solid #e9edf2;
+        padding: 28px 32px;
+        transition: all 0.2s ease;
         height: 100%;
     }
-    .production-card:hover {
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-        transform: translateY(-4px);
-    }
-    .production-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #10b981, #059669, #10b981);
-        background-size: 200% 100%;
-        animation: gradientSlide 3s ease-in-out infinite;
-    }
-    @keyframes gradientSlide {
-        0%, 100% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
+    .modern-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        border-color: #d0d7e0;
     }
 
-    /* Production Icon */
-    .production-icon {
-        width: 64px;
-        height: 64px;
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.12));
-        border-radius: 18px;
+    /* Section Headers */
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1a1f2b;
+        margin-bottom: 6px;
         display: flex;
         align-items: center;
-        justify-content: center;
-        font-size: 28px;
-        color: #10b981;
-        margin-bottom: 16px;
-        transition: all 0.3s ease;
+        gap: 8px;
     }
-    .production-card:hover .production-icon {
-        transform: scale(1.05) rotate(-5deg);
+    .section-subtitle {
+        font-size: 13px;
+        color: #6b7280;
+        margin-bottom: 20px;
+        line-height: 1.5;
+    }
+    .section-subtitle b {
+        color: #1a1f2b;
     }
 
-    /* Form Inputs - Premium */
+    /* Form Labels - Clean */
+    .form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 4px;
+        letter-spacing: 0.2px;
+    }
+
+    /* Form Inputs - Sharp, Modern */
     .form-input {
         width: 100%;
-        padding: 12px 16px;
-        background: rgba(241, 245, 249, 0.6);
-        border: 2px solid rgba(226, 232, 240, 0.6);
-        border-radius: 14px;
+        padding: 10px 14px;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
         font-size: 14px;
-        transition: all 0.3s ease;
+        transition: all 0.15s ease;
         outline: none;
         color: #1e293b;
     }
     .form-input:focus {
-        border-color: rgba(16, 185, 129, 0.4);
-        box-shadow: 0 0 30px rgba(16, 185, 129, 0.06);
-        background: white;
+        border-color: #3b82f6;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
     .form-input::placeholder {
-        color: #94a3b8;
-    }
-    .form-label {
-        display: block;
-        font-size: 13px;
-        font-weight: 600;
-        color: #475569;
-        margin-bottom: 6px;
-        letter-spacing: 0.3px;
-    }
-    .form-label i {
-        margin-right: 6px;
-        color: #10b981;
+        color: #9ca3af;
     }
 
-    /* Submit Button - Premium Gradient */
+    /* Select2 Custom - Clean & Sharp */
+    .select2-container .select2-selection--single {
+        height: 42px !important;
+        padding: 6px 12px;
+        background: #f8fafc !important;
+        border: 1.5px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        transition: all 0.15s ease !important;
+    }
+    .select2-container--open .select2-selection--single {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+    }
+    .select2-container .select2-selection--single .select2-selection__rendered {
+        padding-left: 4px;
+        line-height: 26px !important;
+        color: #1e293b !important;
+        font-size: 14px !important;
+    }
+    .select2-container .select2-selection--single .select2-selection__arrow {
+        height: 40px !important;
+        right: 8px !important;
+    }
+    .select2-dropdown {
+        border: 1.5px solid #e2e8f0 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+        overflow: hidden !important;
+    }
+    .select2-results__option {
+        padding: 8px 14px !important;
+        font-size: 14px !important;
+    }
+    .select2-results__option--highlighted {
+        background-color: #3b82f6 !important;
+    }
+
+    /* Number Inputs - Clean */
+    .number-input {
+        width: 100%;
+        padding: 10px 14px;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.15s ease;
+        outline: none;
+        color: #1e293b;
+    }
+    .number-input:focus {
+        border-color: #3b82f6;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Packing Preview Box */
+    .packing-box {
+        background: #f0fdf4;
+        border: 1.5px solid #86efac;
+        border-radius: 8px;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 4px;
+    }
+    .packing-box .label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #166534;
+    }
+    .packing-box .value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #15803d;
+    }
+    .packing-box .value.negative {
+        color: #dc2626;
+    }
+
+    /* Submit Button - Clean & Modern */
     .submit-btn {
         width: 100%;
-        padding: 14px;
-        background: linear-gradient(135deg, #10b981, #059669, #10b981);
-        background-size: 200% 200%;
+        padding: 12px;
+        background: #16a34a;
         border: none;
-        border-radius: 16px;
+        border-radius: 8px;
         color: white;
         font-weight: 600;
         font-size: 15px;
         cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
-        animation: gradientMove 3s ease-in-out infinite;
-        position: relative;
-        overflow: hidden;
-    }
-    @keyframes gradientMove {
-        0%, 100% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
+        transition: all 0.15s ease;
+        box-shadow: 0 1px 2px rgba(22, 163, 74, 0.2);
     }
     .submit-btn:hover {
-        transform: translateY(-3px) scale(1.02);
-        box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
+        background: #15803d;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
     }
     .submit-btn:active {
         transform: scale(0.98);
     }
-    .submit-btn::after {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.15), transparent);
-        transform: rotate(45deg);
-        animation: btnShine 3s ease-in-out infinite;
+
+    /* Recent Entries Table - Clean */
+    .table-wrapper {
+        overflow-x: auto;
+        margin-top: 4px;
     }
-    @keyframes btnShine {
-        0% { transform: translateX(-100%) rotate(45deg); }
-        100% { transform: translateX(100%) rotate(45deg); }
+    .table-wrapper::-webkit-scrollbar {
+        height: 6px;
+    }
+    .table-wrapper::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
     }
 
-    /* Recent Entries Table */
     .recent-table {
         width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
+        border-collapse: collapse;
+        font-size: 13px;
     }
     .recent-table thead th {
-        padding: 12px 16px;
+        padding: 10px 12px;
         text-align: left;
-        font-size: 12px;
         font-weight: 600;
+        color: #6b7280;
+        border-bottom: 2px solid #e9edf2;
+        font-size: 12px;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: #64748b;
-        border-bottom: 2px solid rgba(226, 232, 240, 0.5);
+        letter-spacing: 0.4px;
+        white-space: nowrap;
     }
     .recent-table tbody td {
-        padding: 12px 16px;
-        font-size: 14px;
-        border-bottom: 1px solid rgba(226, 232, 240, 0.3);
-        transition: all 0.2s ease;
+        padding: 10px 12px;
+        border-bottom: 1px solid #f1f5f9;
+        white-space: nowrap;
     }
     .recent-table tbody tr {
-        transition: all 0.2s ease;
+        transition: all 0.1s ease;
     }
     .recent-table tbody tr:hover {
-        background: rgba(16, 185, 129, 0.04);
-        transform: scale(1.002);
+        background: #f8fafc;
     }
     .recent-table tbody tr:last-child td {
         border-bottom: none;
     }
 
-    /* Quantity Badge */
-    .qty-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 14px;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 13px;
-    }
-    .qty-badge-green {
-        background: rgba(16, 185, 129, 0.12);
-        color: #10b981;
-    }
-
-    /* User Badge */
-    .user-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 3px 12px;
-        border-radius: 20px;
-        background: rgba(59, 130, 246, 0.08);
-        color: #3b82f6;
-        font-size: 12px;
-    }
+    /* Value Colors */
+    .val-green { color: #16a34a; font-weight: 600; }
+    .val-red { color: #dc2626; font-weight: 600; }
+    .val-slate { color: #475569; }
 
     /* Empty State */
     .empty-state {
-        padding: 40px 20px;
+        padding: 32px 20px;
         text-align: center;
-        color: #94a3b8;
-    }
-    .empty-state i {
-        font-size: 48px;
-        margin-bottom: 12px;
-        opacity: 0.3;
-    }
-
-    /* Error Text */
-    .error-text {
-        color: #ef4444;
-        font-size: 12px;
-        margin-top: 4px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    /* Section Title with Line */
-    .section-title {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 16px;
-    }
-    .section-title h2 {
-        font-size: 15px;
-        font-weight: 700;
-        color: #1e293b;
-    }
-    .section-title .line {
-        flex: 1;
-        height: 2px;
-        background: linear-gradient(90deg, rgba(16, 185, 129, 0.2), transparent);
+        color: #9ca3af;
     }
 
     /* Responsive */
     @media (max-width: 768px) {
-        .production-card {
-            padding: 24px;
+        .modern-card {
+            padding: 20px;
         }
-        .form-input {
-            padding: 10px 14px;
-            font-size: 13px;
+        .packing-box .value {
+            font-size: 20px;
         }
         .recent-table thead th,
         .recent-table tbody td {
-            padding: 10px 12px;
+            padding: 8px 10px;
             font-size: 12px;
-        }
-        .production-icon {
-            width: 48px;
-            height: 48px;
-            font-size: 22px;
         }
     }
 </style>
 
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet"/>
+
 <div class="production-container">
     <div class="grid md:grid-cols-2 gap-6">
         <!-- Production Entry Form -->
-        <div class="production-card">
-            <div class="production-icon">
-                <i class="fas fa-industry"></i>
+        <div class="modern-card">
+            <div class="section-title">
+                <i class="fas fa-industry" style="color: #16a34a;"></i>
+                Daily Production Entry
             </div>
-            
-            <h1 class="text-xl font-bold text-slate-800 mb-1">Daily Production Entry</h1>
-            <p class="text-sm text-slate-500 mb-6 flex items-center gap-2">
-                <i class="fas fa-info-circle"></i>
-                This quantity will be added to the <span class="font-semibold text-green-600">"STOCK"</span>.
-            </p>
+            <div class="section-subtitle">
+                All Curing + Production Tyre − (Repair + 2nd + 3rd + Lose Tyre) = <b>Packing</b> (added to STOCK) — auto-calculated.
+            </div>
 
             <form method="post" class="space-y-4">
                 {% csrf_token %}
-                {% for field in form %}
+                
                 <div>
-                    <label class="form-label">
-                        <i class="fas {% if 'tyre' in field.name %}fa-tire{% elif 'quantity' in field.name %}fa-hashtag{% else %}fa-tag{% endif %}"></i>
-                        {{ field.label }}
-                    </label>
-                    {{ field }}
-                    {% if field.errors %}
-                    <p class="error-text">
-                        <i class="fas fa-exclamation-circle"></i>
-                        {{ field.errors.0 }}
-                    </p>
-                    {% endif %}
+                    <label class="form-label"><i class="fas fa-calendar" style="color: #6b7280;"></i> Date</label>
+                    {{ form.date }}
                 </div>
-                {% endfor %}
+
+                <div>
+                    <label class="form-label"><i class="fas fa-tire" style="color: #6b7280;"></i> Tyre</label>
+                    {{ form.tyre_item }}
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label"><i class="fas fa-thermometer" style="color: #6b7280;"></i> All Curing</label>
+                        {{ form.all_curing }}
+                    </div>
+                    <div>
+                        <label class="form-label"><i class="fas fa-cogs" style="color: #6b7280;"></i> Production Tyre</label>
+                        {{ form.production_tyre }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label"><i class="fas fa-tools" style="color: #6b7280;"></i> Repair</label>
+                        {{ form.repair }}
+                    </div>
+                    <div>
+                        <label class="form-label"><i class="fas fa-layer-group" style="color: #6b7280;"></i> 2nd Grade</label>
+                        {{ form.second_grade }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label"><i class="fas fa-layer-group" style="color: #6b7280;"></i> 3rd Grade</label>
+                        {{ form.third_grade }}
+                    </div>
+                    <div>
+                        <label class="form-label"><i class="fas fa-trash-alt" style="color: #6b7280;"></i> Lose Tyre</label>
+                        {{ form.lose_tyre }}
+                    </div>
+                </div>
+
+                {% if form.non_field_errors %}
+                    <p class="text-red-600 text-sm">{{ form.non_field_errors.0 }}</p>
+                {% endif %}
+
+                <!-- Packing Preview -->
+                <div class="packing-box">
+                    <span class="label"><i class="fas fa-box"></i> Packing (Auto-Calculated)</span>
+                    <span id="packing-preview" class="value">0</span>
+                </div>
 
                 <button type="submit" class="submit-btn">
                     <i class="fas fa-plus-circle mr-2"></i>
@@ -300,52 +332,50 @@
         </div>
 
         <!-- Recent Entries -->
-        <div class="production-card">
+        <div class="modern-card">
             <div class="section-title">
-                <h2>
-                    <i class="fas fa-clock text-green-500 mr-2"></i>
-                    Recent Production Entries
-                </h2>
-                <div class="line"></div>
+                <i class="fas fa-clock" style="color: #6b7280;"></i>
+                Recent Entries
+            </div>
+            <div class="section-subtitle">
+                Latest production entries
             </div>
 
-            <div class="overflow-x-auto">
+            <div class="table-wrapper">
                 <table class="recent-table">
                     <thead>
                         <tr>
                             <th>Date</th>
                             <th>Tyre</th>
-                            <th class="text-right">Qty</th>
+                            <th class="text-right">Curing</th>
+                            <th class="text-right">P. Tyre</th>
+                            <th class="text-right">Repair</th>
+                            <th class="text-right">2nd</th>
+                            <th class="text-right">3rd</th>
+                            <th class="text-right">Lose</th>
+                            <th class="text-right">Packing</th>
                             <th>By</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for e in recent %}
                         <tr>
-                            <td class="text-slate-500">
-                                <i class="fas fa-calendar-day mr-1 text-slate-300"></i>
-                                {{ e.date|date:"d-M-Y" }}
-                            </td>
-                            <td class="font-medium text-slate-700">{{ e.tyre_item }}</td>
-                            <td class="text-right">
-                                <span class="qty-badge qty-badge-green">
-                                    <i class="fas fa-plus"></i>
-                                    {{ e.quantity }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="user-badge">
-                                    <i class="fas fa-user-circle"></i>
-                                    {{ e.user.username|default:"-" }}
-                                </span>
-                            </td>
+                            <td class="text-slate-500">{{ e.date|date:"d-M-Y" }}</td>
+                            <td class="font-medium">{{ e.tyre_item }}</td>
+                            <td class="text-right val-slate">{{ e.all_curing }}</td>
+                            <td class="text-right val-slate">{{ e.production_tyre }}</td>
+                            <td class="text-right val-slate">{{ e.repair }}</td>
+                            <td class="text-right val-slate">{{ e.second_grade }}</td>
+                            <td class="text-right val-slate">{{ e.third_grade }}</td>
+                            <td class="text-right val-slate">{{ e.lose_tyre }}</td>
+                            <td class="text-right val-green">+{{ e.quantity }}</td>
+                            <td>{{ e.user.username|default:"-" }}</td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="empty-state">
-                                <i class="fas fa-inbox"></i>
-                                <p class="text-base">No production entries yet.</p>
-                                <p class="text-sm text-slate-400">Add production entries here.</p>
+                            <td colspan="10" class="empty-state">
+                                <i class="fas fa-inbox" style="font-size: 32px; opacity: 0.3; display: block; margin-bottom: 8px;"></i>
+                                No entries yet.
                             </td>
                         </tr>
                         {% endfor %}
@@ -356,19 +386,60 @@
     </div>
 </div>
 
+<!-- jQuery + Select2 JS -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
-// Animate cards on load
-document.addEventListener('DOMContentLoaded', function() {
-    const cards = document.querySelectorAll('.production-card');
-    cards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(30px)';
-        setTimeout(() => {
-            card.style.transition = 'all 0.6s ease';
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }, 100 + (index * 150));
+$(document).ready(function() {
+    // Initialize Select2 with Active Search
+    $('#id_tyre_item').select2({
+        width: "100%",
+        placeholder: "Search tyre...",
+        allowClear: true,
+        theme: "default",
+        dropdownAutoWidth: true,
+        matcher: function(params, data) {
+            // If there are no search terms, return all
+            if ($.trim(params.term) === '') {
+                return data;
+            }
+            // Do not display the item if there is no 'text' property
+            if (typeof data.text === 'undefined') {
+                return null;
+            }
+            // `params.term` is the user's search term
+            // `data.text` is the text that is displayed for the option
+            var term = params.term.toLowerCase();
+            var text = data.text.toLowerCase();
+            if (text.indexOf(term) > -1) {
+                return data;
+            }
+            // Return `null` if the term should not be displayed
+            return null;
+        }
     });
+
+    // Auto-calculation for Packing
+    const ids = ["id_all_curing", "id_production_tyre", "id_repair", "id_second_grade", "id_third_grade", "id_lose_tyre"];
+    const preview = document.getElementById("packing-preview");
+
+    function recalc() {
+        const v = {};
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            v[id] = el ? (parseInt(el.value, 10) || 0) : 0;
+        });
+        const packing = (v.id_all_curing + v.id_production_tyre) - (v.id_repair + v.id_second_grade + v.id_third_grade + v.id_lose_tyre);
+        preview.textContent = packing;
+        preview.className = "value " + (packing < 0 ? "negative" : "");
+    }
+
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener("input", recalc);
+    });
+    recalc();
 });
 </script>
 {% endblock %}

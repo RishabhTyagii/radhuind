@@ -108,23 +108,29 @@ def add_production(request):
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
             item = form.cleaned_data["tyre_item"]
-            qty = form.cleaned_data["quantity"]
-            item.stock += qty
+            packing = form.cleaned_data["packing"]
+            item.stock += packing
             item.save(update_fields=["stock"])
             DailyEntry.objects.create(
                 tyre_item=item,
                 entry_type="production",
                 bucket="stock",
-                quantity=qty,
+                quantity=packing,
                 date=form.cleaned_data["date"],
+                all_curing=form.cleaned_data["all_curing"],
+                production_tyre=form.cleaned_data["production_tyre"],
+                repair=form.cleaned_data["repair"],
+                second_grade=form.cleaned_data["second_grade"],
+                third_grade=form.cleaned_data["third_grade"],
+                lose_tyre=form.cleaned_data["lose_tyre"],
+                actual_weight=form.cleaned_data["actual_weight"],
                 remark=form.cleaned_data["remark"],
                 user=request.user,
             )
-        messages.success(request, f"Production entry has been added: {item} +{qty}")
+        messages.success(request, f"Production entry ho gayi: {item} | Packing (Stock mein add) +{packing}")
         return redirect("add_production")
     recent = DailyEntry.objects.filter(entry_type="production").select_related("tyre_item", "user")[:15]
     return render(request, "stock/add_production.html", {"form": form, "recent": recent})
-
 
 @login_required
 def add_dispatch(request):
