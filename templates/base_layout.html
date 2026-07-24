@@ -117,47 +117,53 @@ if ('serviceWorker' in navigator) {
 <!-- PWA Installation Handler -->
 <script>
 let deferredPrompt;
-const installBtn = document.getElementById('installBtn');
+const installBtn = document.getElementById("installBtn");
+
+window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    if (installBtn) {
+        installBtn.style.display = "flex";
+    }
+});
 
 if (installBtn) {
 
     installBtn.addEventListener("click", async () => {
 
-        
+        if (!deferredPrompt) {
 
-    });
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    installBtn.style.display = 'flex';
-});
+            if (window.matchMedia("(display-mode: standalone)").matches) {
+                alert("✅ App already installed!");
+            } else {
+                alert("⚠️ PWA installation not supported.");
+            }
 
-installBtn.addEventListener('click', async () => {
-    if (!deferredPrompt) {
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-            alert("✅ App already installed!");
-        } else {
-            alert("⚠️ PWA installation not supported");
+            return;
         }
-        return;
+
+        deferredPrompt.prompt();
+
+        const { outcome } = await deferredPrompt.userChoice;
+
+        console.log("User choice:", outcome);
+
+        installBtn.style.display = "none";
+
+        deferredPrompt = null;
+    });
+
+    window.addEventListener("appinstalled", () => {
+        console.log("PWA Installed");
+        installBtn.style.display = "none";
+    });
+
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+        installBtn.style.display = "none";
     }
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log('User choice:', outcome);
-    installBtn.style.display = 'none';
-    deferredPrompt = null;
-});
 
-window.addEventListener('appinstalled', () => {
-    console.log('PWA installed');
-    installBtn.style.display = 'none';
-});
-
-// Hide if already standalone
-if (window.matchMedia('(display-mode: standalone)').matches) {
-    installBtn.style.display = 'none';
 }
 </script>
-
 </body>
 </html>
