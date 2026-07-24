@@ -120,11 +120,11 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
-<!-- PWA Installation Handler -->
+<!-- Service Worker Registration -->
 <script>
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/static/service-worker.js")
+        navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
             .then(reg => console.log("Service Worker Registered", reg))
             .catch(err => console.error("Service Worker Error:", err));
     });
