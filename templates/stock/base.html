@@ -122,39 +122,64 @@ if ('serviceWorker' in navigator) {
 
 <!-- PWA Installation Handler -->
 <script>
-let deferredPrompt;
-const installBtn = document.getElementById('installBtn');
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/static/service-worker.js")
+            .then(reg => console.log("Service Worker Registered", reg))
+            .catch(err => console.error("Service Worker Error:", err));
+    });
+}
+</script>
 
-window.addEventListener('beforeinstallprompt', (e) => {
+<!-- PWA Installation Handler -->
+<script>
+let deferredPrompt;
+const installBtn = document.getElementById("installBtn");
+
+window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    installBtn.style.display = 'flex';
-});
 
-installBtn.addEventListener('click', async () => {
-    if (!deferredPrompt) {
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-            alert("✅ App already installed!");
-        } else {
-            alert("⚠️ PWA installation not supported");
-        }
-        return;
+    if (installBtn) {
+        installBtn.style.display = "flex";
     }
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log('User choice:', outcome);
-    installBtn.style.display = 'none';
-    deferredPrompt = null;
 });
 
-window.addEventListener('appinstalled', () => {
-    console.log('PWA installed');
-    installBtn.style.display = 'none';
-});
+if (installBtn) {
 
-// Hide if already standalone
-if (window.matchMedia('(display-mode: standalone)').matches) {
-    installBtn.style.display = 'none';
+    installBtn.addEventListener("click", async () => {
+
+        if (!deferredPrompt) {
+
+            if (window.matchMedia("(display-mode: standalone)").matches) {
+                alert("✅ App already installed!");
+            } else {
+                alert("⚠️ PWA installation not supported.");
+            }
+
+            return;
+        }
+
+        deferredPrompt.prompt();
+
+        const { outcome } = await deferredPrompt.userChoice;
+
+        console.log("User choice:", outcome);
+
+        installBtn.style.display = "none";
+
+        deferredPrompt = null;
+    });
+
+    window.addEventListener("appinstalled", () => {
+        console.log("PWA Installed");
+        installBtn.style.display = "none";
+    });
+
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+        installBtn.style.display = "none";
+    }
+
 }
 </script>
 
