@@ -119,6 +119,13 @@ if ('serviceWorker' in navigator) {
 let deferredPrompt;
 const installBtn = document.getElementById('installBtn');
 
+if (installBtn) {
+
+    installBtn.addEventListener("click", async () => {
+
+        
+
+    });
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
