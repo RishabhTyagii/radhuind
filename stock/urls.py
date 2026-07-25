@@ -9,4 +9,5 @@ urlpatterns = [
     path("adjustment/add/", views.add_adjustment, name="add_adjustment"),
     path("entries/", views.entries_log, name="entries_log"),
     path("report/monthly/", views.monthly_report, name="monthly_report"),
+    path("report/production-sheet/", views.production_sheet, name="production_sheet"),
 ]

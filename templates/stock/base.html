@@ -9,178 +9,421 @@
     <link rel="manifest" href="/static/manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        /* Custom scrollbar and glassmorphism */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 8px; }
-        .glass-nav {
-            background: rgba(30, 41, 59, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255,255,255,0.08);
+        /* --- Premium Hybrid Navbar Styles --- */
+        :root {
+            --nav-height: 64px;
+            --nav-bg: #0f172a;
+            --nav-hover: #1e293b;
+            --nav-active: #2563eb;
+            --nav-text: #cbd5e1;
+            --nav-active-text: #ffffff;
         }
-        .nav-link {
+
+        * { box-sizing: border-box; }
+
+        body {
+            background: #f1f5f9;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Top Navbar --- */
+        .top-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-height);
+            background: var(--nav-bg);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
             transition: all 0.2s ease;
         }
-        .nav-link:hover {
-            background: rgba(255,255,255,0.12);
+
+        .top-navbar .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-right: 24px;
+            flex-shrink: 0;
+        }
+        .top-navbar .brand .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+        .top-navbar .brand .brand-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+        }
+
+        /* --- Nav Links (Desktop) --- */
+        .nav-links-desktop {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            overflow-x: auto;
+            padding: 4px 0;
+            scrollbar-width: none;
+        }
+        .nav-links-desktop::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-links-desktop .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 8px;
+            color: var(--nav-text);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .nav-links-desktop .nav-link:hover {
+            background: var(--nav-hover);
+            color: #ffffff;
             transform: translateY(-1px);
         }
-        .card-hover {
-            transition: all 0.3s ease;
+        .nav-links-desktop .nav-link.active {
+            background: var(--nav-active);
+            color: var(--nav-active-text);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
         }
-        .card-hover:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.2);
+        .nav-links-desktop .nav-link i {
+            font-size: 14px;
+        }
+
+        /* --- User Section --- */
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: 16px;
+            flex-shrink: 0;
+            padding-left: 16px;
+            border-left: 1px solid rgba(255,255,255,0.08);
+        }
+        .user-section .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .user-section .user-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: #ffffff;
+        }
+        .user-section .logout-btn {
+            color: rgba(255,255,255,0.3);
+            transition: all 0.15s ease;
+            padding: 6px;
+            border-radius: 6px;
+        }
+        .user-section .logout-btn:hover {
+            color: #f87171;
+            background: rgba(248, 113, 113, 0.1);
+        }
+
+        /* --- Mobile Hamburger --- */
+        .mobile-hamburger {
+            display: none;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: all 0.15s ease;
+        }
+        .mobile-hamburger:hover {
+            background: var(--nav-hover);
+        }
+
+        /* --- Mobile Dropdown (Collapsible) --- */
+        .mobile-dropdown {
+            display: none;
+            position: fixed;
+            top: var(--nav-height);
+            left: 0;
+            right: 0;
+            background: var(--nav-bg);
+            padding: 12px 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            max-height: calc(100vh - var(--nav-height));
+            overflow-y: auto;
+            flex-direction: column;
+            gap: 4px;
+            transition: all 0.25s ease;
+        }
+        .mobile-dropdown.open {
+            display: flex;
+        }
+
+        .mobile-dropdown .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            color: var(--nav-text);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+        }
+        .mobile-dropdown .nav-link:hover {
+            background: var(--nav-hover);
+            color: #ffffff;
+        }
+        .mobile-dropdown .nav-link.active {
+            background: var(--nav-active);
+            color: var(--nav-active-text);
+        }
+        .mobile-dropdown .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            margin-top: var(--nav-height);
+            padding: 24px 32px;
+            min-height: calc(100vh - var(--nav-height));
+            transition: all 0.2s ease;
+        }
+
+        /* --- Message Toast --- */
+        .message-toast {
+            margin-bottom: 20px;
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideDown 0.3s ease;
+        }
+        .message-toast.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+        }
+        .message-toast.success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #16a34a;
+        }
+        @keyframes slideDown {
+            0% { opacity: 0; transform: translateY(-12px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 1024px) {
+            .nav-links-desktop {
+                display: none;
+            }
+            .user-section .user-name {
+                display: none;
+            }
+            .user-section {
+                margin-left: auto;
+                border-left: none;
+                padding-left: 0;
+            }
+            .mobile-hamburger {
+                display: block;
+                margin-right: 12px;
+            }
+            .top-navbar .brand .brand-text {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .main-content {
+                padding: 16px;
+            }
+            .top-navbar {
+                padding: 0 12px;
+            }
+            .top-navbar .brand .brand-text {
+                font-size: 14px;
+            }
+            .mobile-dropdown {
+                padding: 12px 16px 16px;
+            }
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 min-h-screen text-slate-800 font-sans">
+<body>
 
 {% if user.is_authenticated %}
-<nav class="glass-nav text-white sticky top-0 z-50 shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-            <!-- Logo with Home Link -->
-            <a href="{% url 'home' %}" class="flex items-center gap-2 font-bold text-xl tracking-tight">
-                <i class="fas fa-industry text-cyan-400"></i>
-                <span class="bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">Radhu Industries</span>
+    <!-- Top Navbar -->
+    <header class="top-navbar">
+        <!-- Brand -->
+        <a href="{% url 'home' %}" class="brand">
+            <div class="logo-icon">
+                <i class="fas fa-industry"></i>
+            </div>
+            <span class="brand-text">Radhu Industries</span>
+        </a>
+
+        <!-- Mobile Hamburger -->
+        <button class="mobile-hamburger" id="mobileMenuToggle" aria-label="Toggle menu">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Desktop Nav Links (Horizontal Scroll) -->
+        <nav class="nav-links-desktop" id="desktopNav">
+            <a href="{% url 'home' %}" class="nav-link {% if request.path == '/' %}active{% endif %}">
+                <i class="fas fa-home"></i> Home
             </a>
+            <a href="{% url 'dashboard' %}" class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}">
+                <i class="fas fa-warehouse"></i> Stock
+            </a>
+            <a href="{% url 'add_production' %}" class="nav-link {% if request.path == '/production/add/' %}active{% endif %}">
+                <i class="fas fa-plus-circle" style="color: #34d399;"></i> Production
+            </a>
+            <a href="{% url 'add_dispatch' %}" class="nav-link {% if request.path == '/dispatch/add/' %}active{% endif %}">
+                <i class="fas fa-truck" style="color: #f87171;"></i> Dispatch
+            </a>
+            <a href="{% url 'add_adjustment' %}" class="nav-link {% if request.path == '/adjustment/add/' %}active{% endif %}">
+                <i class="fas fa-sliders-h" style="color: #a78bfa;"></i> Adjust
+            </a>
+            <a href="{% url 'entries_log' %}" class="nav-link {% if request.path == '/entries/' %}active{% endif %}">
+                <i class="fas fa-history" style="color: #93c5fd;"></i> Entries
+            </a>
+            <a href="{% url 'monthly_report' %}" class="nav-link {% if request.path == '/report/' %}active{% endif %}">
+                <i class="fas fa-chart-bar" style="color: #f9a8d4;"></i> Report
+            </a>
+            <a href="{% url 'production_sheet' %}" class="nav-link {% if request.path == '/production/sheet/' %}active{% endif %}">
+                <i class="fas fa-file-alt" style="color: #fbbf24;"></i> Sheet
+            </a>
+            <a href="{% url 'add_tyre' %}" class="nav-link {% if request.path == '/tyre/add/' %}active{% endif %}">
+                <i class="fas fa-plus-circle" style="color: #09c8ee;"></i>  Tyre
+            </a>
+        </nav>
 
-            <!-- Desktop Menu -->
-            <div class="hidden md:flex items-center gap-1 text-sm font-medium">
-                <a href="{% url 'home' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-home"></i> Home</a>
-                <a href="{% url 'dashboard' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-warehouse"></i> Stock</a>
-                <a href="{% url 'add_production' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-plus-circle text-emerald-400"></i> Production</a>
-                <a href="{% url 'add_dispatch' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-truck text-amber-400"></i> Dispatch</a>
-                <a href="{% url 'add_adjustment' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-sliders-h text-purple-400"></i> Adjust</a>
-                <a href="{% url 'entries_log' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-history text-blue-300"></i> Entries</a>
-                <a href="{% url 'monthly_report' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2"><i class="fas fa-chart-bar text-pink-300"></i> Report</a>
-                <a href="{% url 'add_tyre' %}" class="nav-link px-4 py-2 rounded-lg flex items-center gap-2 bg-white/10 hover:bg-white/20"><i class="fas fa-tire"></i> + Tyre</a>
-            </div>
-
-            <!-- User & Logout -->
-            <div class="flex items-center gap-4">
-                <span class="hidden sm:inline text-slate-300 text-sm font-medium border-r border-slate-600 pr-4">
-                    <i class="fas fa-user-circle mr-2"></i>{{ user.username }}
-                </span>
-                <a href="{% url 'logout' %}" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-300 hover:text-red-200 transition-all">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="hidden sm:inline">Logout</span>
-                </a>
-            </div>
+        <!-- User Section -->
+        <div class="user-section">
+            <div class="avatar">{{ user.username|slice:":1"|upper }}</div>
+            <span class="user-name">{{ user.username }}</span>
+            <a href="{% url 'logout' %}" class="logout-btn" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+            </a>
         </div>
+    </header>
 
-        <!-- Mobile Menu (collapsible) -->
-        <div class="md:hidden pb-3 flex flex-wrap gap-2 text-sm">
-            <a href="{% url 'home' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-home mr-1"></i>Home</a>
-            <a href="{% url 'dashboard' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-warehouse mr-1"></i>Stock</a>
-            <a href="{% url 'add_production' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-plus-circle mr-1"></i>Prod</a>
-            <a href="{% url 'add_dispatch' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-truck mr-1"></i>Dispatch</a>
-            <a href="{% url 'add_adjustment' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-sliders-h mr-1"></i>Adjust</a>
-            <a href="{% url 'entries_log' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-history mr-1"></i>Entries</a>
-            <a href="{% url 'monthly_report' %}" class="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10"><i class="fas fa-chart-bar mr-1"></i>Report</a>
-            <a href="{% url 'add_tyre' %}" class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20"><i class="fas fa-tire mr-1"></i>+Tyre</a>
-        </div>
+    <!-- Mobile Dropdown Menu -->
+    <div class="mobile-dropdown" id="mobileDropdown">
+        <a href="{% url 'home' %}" class="nav-link {% if request.path == '/' %}active{% endif %}">
+            <i class="fas fa-home"></i> Home
+        </a>
+        <a href="{% url 'dashboard' %}" class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}">
+            <i class="fas fa-warehouse"></i> Stock Dashboard
+        </a>
+        <a href="{% url 'add_production' %}" class="nav-link {% if request.path == '/production/add/' %}active{% endif %}">
+            <i class="fas fa-plus-circle" style="color: #34d399;"></i> Add Production
+        </a>
+        <a href="{% url 'add_dispatch' %}" class="nav-link {% if request.path == '/dispatch/add/' %}active{% endif %}">
+            <i class="fas fa-truck" style="color: #f87171;"></i> Add Dispatch
+        </a>
+        <a href="{% url 'add_adjustment' %}" class="nav-link {% if request.path == '/adjustment/add/' %}active{% endif %}">
+            <i class="fas fa-sliders-h" style="color: #a78bfa;"></i> Add Adjustment
+        </a>
+        <a href="{% url 'entries_log' %}" class="nav-link {% if request.path == '/entries/' %}active{% endif %}">
+            <i class="fas fa-history"></i> Entries Log
+        </a>
+        <a href="{% url 'monthly_report' %}" class="nav-link {% if request.path == '/report/' %}active{% endif %}">
+            <i class="fas fa-chart-bar"></i> Monthly Report
+        </a>
+        <a href="{% url 'production_sheet' %}" class="nav-link {% if request.path == '/production/sheet/' %}active{% endif %}">
+            <i class="fas fa-file-alt"></i> Production Sheet
+        </a>
+        <a href="{% url 'add_tyre' %}" class="nav-link {% if request.path == '/tyre/add/' %}active{% endif %}">
+            <i class="fas fa-tire"></i> Add New Tyre
+        </a>
     </div>
-</nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message-toast {% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                    <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %}"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+{% else %}
+    <!-- Login / Unauthenticated -->
+    <main class="main-content" style="margin-top:0; min-height:100vh; display:flex; align-items:center; justify-content:center;">
+        {% block login_content %}{% endblock %}
+    </main>
 {% endif %}
 
-<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    {% if messages %}
-        {% for message in messages %}
-            <div class="mb-6 px-5 py-4 rounded-xl shadow-md text-sm font-medium flex items-center gap-3
-                {% if message.tags == 'error' %}
-                    bg-red-50 text-red-700 border-l-4 border-red-500
-                {% else %}
-                    bg-emerald-50 text-emerald-700 border-l-4 border-emerald-500
-                {% endif %}
-            ">
-                <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} text-lg"></i>
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
-    {% block content %}{% endblock %}
-</main>
-
-<!-- PWA Install Button (Floating) -->
-<!-- <button id="installBtn" style="display:none; position:fixed; bottom:2rem; right:2rem; z-index:1000; padding:14px 20px; background:linear-gradient(135deg, #3b82f6, #8b5cf6); color:white; border:none; border-radius:16px; font-weight:600; box-shadow:0 8px 24px rgba(59,130,246,0.4); backdrop-filter:blur(8px); display:flex; align-items:center; gap:10px;">
-    <i class="fas fa-download"></i> Install App
-</button> -->
-
-<!-- Service Worker Registration -->
+<!-- Mobile Menu Toggle Script -->
 <script>
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/static/service-worker.js')
-        .then(reg => console.log('ServiceWorker registered', reg))
-        .catch(err => console.log('ServiceWorker registration failed:', err));
-    });
-}
-</script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('mobileMenuToggle');
+    const dropdown = document.getElementById('mobileDropdown');
 
-<!-- Service Worker Registration -->
-<script>
-if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/service-worker.js", { scope: "/" })
-            .then(reg => console.log("Service Worker Registered", reg))
-            .catch(err => console.error("Service Worker Error:", err));
-    });
-}
-</script>
+    if (toggleBtn && dropdown) {
+        toggleBtn.addEventListener('click', function() {
+            dropdown.classList.toggle('open');
+            // Toggle icon
+            const icon = this.querySelector('i');
+            if (dropdown.classList.contains('open')) {
+                icon.className = 'fas fa-times';
+            } else {
+                icon.className = 'fas fa-bars';
+            }
+        });
 
-<!-- PWA Installation Handler -->
-<script>
-let deferredPrompt;
-const installBtn = document.getElementById("installBtn");
-
-window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-
-    if (installBtn) {
-        installBtn.style.display = "flex";
+        // Close dropdown when a link is clicked
+        dropdown.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function() {
+                dropdown.classList.remove('open');
+                toggleBtn.querySelector('i').className = 'fas fa-bars';
+            });
+        });
     }
 });
-
-if (installBtn) {
-
-    installBtn.addEventListener("click", async () => {
-
-        if (!deferredPrompt) {
-
-            if (window.matchMedia("(display-mode: standalone)").matches) {
-                alert("✅ App already installed!");
-            } else {
-                alert("⚠️ PWA installation not supported.");
-            }
-
-            return;
-        }
-
-        deferredPrompt.prompt();
-
-        const { outcome } = await deferredPrompt.userChoice;
-
-        console.log("User choice:", outcome);
-
-        installBtn.style.display = "none";
-
-        deferredPrompt = null;
-    });
-
-    window.addEventListener("appinstalled", () => {
-        console.log("PWA Installed");
-        installBtn.style.display = "none";
-    });
-
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-        installBtn.style.display = "none";
-    }
-
-}
 </script>
 
 </body>

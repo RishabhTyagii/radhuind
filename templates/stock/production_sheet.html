@@ -1,0 +1,170 @@
+{% extends "stock/base.html" %}
+{% block content %}
+
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+  <h1 class="text-lg font-bold">Production Sheet &mdash; {{ range_label }}</h1>
+  <form method="get" class="flex flex-wrap gap-2 items-end">
+    <div>
+      <label class="block text-xs font-medium mb-1">Ek Din (date)</label>
+      <input type="date" name="date" value="{{ date_str }}" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm">
+    </div>
+    <div>
+      <label class="block text-xs font-medium mb-1">Ya Month</label>
+      <input type="month" name="month" value="{{ month_str }}" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm">
+    </div>
+    <button class="bg-slate-800 text-white rounded-lg px-4 py-1.5 text-sm hover:bg-slate-900">Dekhein</button>
+    <a href="{% url 'production_sheet' %}" class="text-sm text-slate-500 px-2 py-1.5 hover:underline">Reset</a>
+  </form>
+</div>
+
+<div class="mb-4">
+  <div class="relative max-w-sm">
+    <input type="text" id="liveSearch" placeholder="Is sheet mein search karein (tyre naam)..."
+           class="w-full border border-slate-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-600">
+    <span class="absolute left-3 top-2.5 text-slate-400">🔎</span>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 mb-4">
+  <div class="bg-white rounded-lg shadow p-3">
+    <p class="text-[11px] text-slate-500">All Curing</p>
+    <p class="text-lg font-bold">{{ totals.all_curing }}</p>
+  </div>
+  <div class="bg-white rounded-lg shadow p-3">
+    <p class="text-[11px] text-slate-500">Production Tyre</p>
+    <p class="text-lg font-bold">{{ totals.production_tyre }}</p>
+  </div>
+  <div class="bg-white rounded-lg shadow p-3">
+    <p class="text-[11px] text-slate-500">Repair</p>
+    <p class="text-lg font-bold text-amber-600">{{ totals.repair }}</p>
+  </div>
+  <div class="bg-white rounded-lg shadow p-3">
+    <p class="text-[11px] text-slate-500">2nd Grade</p>
+    <p class="text-lg font-bold text-amber-600">{{ totals.second_grade }}</p>
+  </div>
+  <div class="bg-white rounded-lg shadow p-3">
+    <p class="text-[11px] text-slate-500">3rd Grade</p>
+    <p class="text-lg font-bold text-amber-600">{{ totals.third_grade }}</p>
+  </div>
+  <div class="bg-white rounded-lg shadow p-3">
+    <p class="text-[11px] text-slate-500">Lose Tyre</p>
+    <p class="text-lg font-bold text-amber-600">{{ totals.lose_tyre }}</p>
+  </div>
+  <div class="bg-white rounded-lg shadow p-3">
+    <p class="text-[11px] text-slate-500">RFM</p>
+    <p class="text-lg font-bold text-blue-600">{{ totals.rfm }}</p>
+  </div>
+  <div class="bg-green-50 rounded-lg shadow p-3 border border-green-200">
+    <p class="text-[11px] text-green-700">Packing (Total)</p>
+    <p class="text-lg font-bold text-green-700">{{ totals.packing }}</p>
+  </div>
+</div>
+
+{% if chart_labels %}
+<div class="bg-white rounded-xl shadow p-4 mb-4">
+  <h2 class="text-sm font-semibold text-slate-600 mb-2">Packing Trend (date-wise)</h2>
+  <div style="height:260px;"><canvas id="packingChart"></canvas></div>
+</div>
+{% endif %}
+
+<div class="bg-white rounded-xl shadow overflow-x-auto">
+  <table class="w-full text-sm" id="prod-table">
+    <thead class="bg-slate-800 text-white">
+      <tr>
+        <th class="text-left px-3 py-2">Date</th>
+        <th class="text-left px-3 py-2">Tyre</th>
+        <th class="text-right px-3 py-2">All Curing</th>
+        <th class="text-right px-3 py-2">Production Tyre</th>
+        <th class="text-right px-3 py-2">Repair</th>
+        <th class="text-right px-3 py-2">2nd</th>
+        <th class="text-right px-3 py-2">3rd</th>
+        <th class="text-right px-3 py-2">Lose Tyre</th>
+        <th class="text-right px-3 py-2">RFM</th>
+        <th class="text-right px-3 py-2 font-bold">Packing</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr class="border-b border-slate-100 hover:bg-slate-50 prod-row" data-tyre="{{ row.entry.tyre_item.tyre|lower }} {{ row.entry.tyre_item.pattern|lower }} {{ row.entry.tyre_item.type|lower }}">
+        <td class="px-3 py-2">{{ row.entry.date|date:"d-M-Y" }}</td>
+        <td class="px-3 py-2 font-medium">{{ row.entry.tyre_item }}</td>
+        <td class="px-3 py-2 text-right">{{ row.entry.all_curing }}</td>
+        <td class="px-3 py-2 text-right">{{ row.entry.production_tyre }}</td>
+        <td class="px-3 py-2 text-right text-amber-600">{{ row.entry.repair }}</td>
+        <td class="px-3 py-2 text-right text-amber-600">{{ row.entry.second_grade }}</td>
+        <td class="px-3 py-2 text-right text-amber-600">{{ row.entry.third_grade }}</td>
+        <td class="px-3 py-2 text-right text-amber-600">{{ row.entry.lose_tyre }}</td>
+        <td class="px-3 py-2 text-right text-blue-600">{{ row.rfm }}</td>
+        <td class="px-3 py-2 text-right font-bold text-green-700">{{ row.entry.quantity }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="10" class="px-3 py-6 text-center text-slate-400">Is date/month ke liye koi production entry nahi hai.</td></tr>
+      {% endfor %}
+    </tbody>
+    {% if rows %}
+    <tfoot>
+      <tr class="bg-slate-100 font-bold">
+        <td class="px-3 py-2" colspan="2">TOTAL</td>
+        <td class="px-3 py-2 text-right">{{ totals.all_curing }}</td>
+        <td class="px-3 py-2 text-right">{{ totals.production_tyre }}</td>
+        <td class="px-3 py-2 text-right">{{ totals.repair }}</td>
+        <td class="px-3 py-2 text-right">{{ totals.second_grade }}</td>
+        <td class="px-3 py-2 text-right">{{ totals.third_grade }}</td>
+        <td class="px-3 py-2 text-right">{{ totals.lose_tyre }}</td>
+        <td class="px-3 py-2 text-right">{{ totals.rfm }}</td>
+        <td class="px-3 py-2 text-right">{{ totals.packing }}</td>
+      </tr>
+    </tfoot>
+    {% endif %}
+  </table>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+{{ chart_labels|json_script:"chart-labels-data" }}
+{{ chart_values|json_script:"chart-values-data" }}
+<script>
+// Live search — filters table rows instantly, no page reload
+(function() {
+  const input = document.getElementById("liveSearch");
+  const rows = document.querySelectorAll(".prod-row");
+  if (input) {
+    input.addEventListener("keyup", function() {
+      const term = this.value.toLowerCase().trim();
+      rows.forEach(row => {
+        const hay = row.dataset.tyre || "";
+        row.style.display = (term === "" || hay.includes(term)) ? "" : "none";
+      });
+    });
+  }
+})();
+
+// Chart
+{% if chart_labels %}
+const chartLabels = JSON.parse(document.getElementById("chart-labels-data").textContent);
+const chartValues = JSON.parse(document.getElementById("chart-values-data").textContent);
+const ctx = document.getElementById("packingChart");
+if (ctx) {
+  new Chart(ctx.getContext("2d"), {
+    type: "bar",
+    data: {
+      labels: chartLabels,
+      datasets: [{
+        label: "Packing",
+        data: chartValues,
+        backgroundColor: "rgba(16, 185, 129, 0.7)",
+        borderColor: "#10b981",
+        borderWidth: 1,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+}
+{% endif %}
+</script>
+{% endblock %}

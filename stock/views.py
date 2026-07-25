@@ -315,3 +315,85 @@ def monthly_report(request):
         "trend_dispatch": trend_dispatch,
     }
     return render(request, "stock/monthly_report.html", context)
+
+
+
+@login_required
+def production_sheet(request):
+    date_str = request.GET.get("date", "")
+    month_str = request.GET.get("month", "")
+    today = datetime.date.today()
+
+    entries = DailyEntry.objects.filter(entry_type="production").select_related("tyre_item")
+
+    if date_str:
+        try:
+            d = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+            entries = entries.filter(date=d)
+            range_label = d.strftime("%d %b %Y")
+        except ValueError:
+            date_str = ""
+            month_str = f"{today.year:04d}-{today.month:02d}"
+            entries = entries.filter(date__year=today.year, date__month=today.month)
+            range_label = today.strftime("%B %Y")
+    else:
+        if month_str:
+            try:
+                y, m = month_str.split("-")
+                year, month = int(y), int(m)
+            except ValueError:
+                year, month = today.year, today.month
+        else:
+            year, month = today.year, today.month
+        month_str = f"{year:04d}-{month:02d}"
+        entries = entries.filter(date__year=year, date__month=month)
+        range_label = datetime.date(year, month, 1).strftime("%B %Y")
+
+    entries = entries.order_by("-date", "tyre_item__tyre")
+
+    # Pull same-day RFM adjustment activity (bucket='rfm_ok_tyre') so we can show
+    # it alongside each production row for that tyre/date, without extra per-row queries.
+    date_list = list(entries.values_list("date", flat=True).distinct())
+    rfm_qs = DailyEntry.objects.filter(
+        entry_type="adjustment", bucket="rfm_ok_tyre", date__in=date_list
+    ).values("date", "tyre_item_id").annotate(total=Sum("quantity"))
+    rfm_map = {(r["date"], r["tyre_item_id"]): r["total"] for r in rfm_qs}
+
+    rows = []
+    totals = {
+        "all_curing": 0, "production_tyre": 0, "repair": 0,
+        "second_grade": 0, "third_grade": 0, "lose_tyre": 0,
+        "packing": 0, "rfm": 0,
+    }
+    daily_packing = {}  # date -> packing sum, for the chart
+
+    for e in entries:
+        rfm_val = rfm_map.get((e.date, e.tyre_item_id), 0)
+        rows.append({
+            "entry": e,
+            "rfm": rfm_val,
+        })
+        totals["all_curing"] += e.all_curing
+        totals["production_tyre"] += e.production_tyre
+        totals["repair"] += e.repair
+        totals["second_grade"] += e.second_grade
+        totals["third_grade"] += e.third_grade
+        totals["lose_tyre"] += e.lose_tyre
+        totals["packing"] += e.quantity
+        totals["rfm"] += rfm_val
+        daily_packing[e.date] = daily_packing.get(e.date, 0) + e.quantity
+
+    chart_dates = sorted(daily_packing.keys())
+    chart_labels = [d.strftime("%d-%b") for d in chart_dates]
+    chart_values = [daily_packing[d] for d in chart_dates]
+
+    context = {
+        "rows": rows,
+        "totals": totals,
+        "date_str": date_str,
+        "month_str": month_str,
+        "range_label": range_label,
+        "chart_labels": chart_labels,
+        "chart_values": chart_values,
+    }
+    return render(request, "stock/production_sheet.html", context)
