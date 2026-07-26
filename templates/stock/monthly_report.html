@@ -1,7 +1,7 @@
 {% extends "stock/base.html" %}
-{% block content %}
 {% load static %}
 
+{% block content %}
 <style>
     /* Monthly Report Styles */
     .report-container {
@@ -477,6 +477,11 @@
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
+<!-- Pass data to JavaScript -->
+{{ trend_labels|json_script:"trend-labels-data" }}
+{{ trend_production|json_script:"trend-production-data" }}
+{{ trend_dispatch|json_script:"trend-dispatch-data" }}
+
 <script>
 // Chart.js Configuration
 document.addEventListener('DOMContentLoaded', function() {
@@ -581,22 +586,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Chart 3: Trend Chart (Line Chart)
+    // Chart 3: Trend Chart (Line Chart) - REAL DATA
     const ctx3 = document.getElementById('trendChart');
     if (ctx3) {
-        // Generate trend data
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-        const prodTrend = months.map((_, i) => Math.max(0, totalProd + (i - 3) * 10));
-        const dispTrend = months.map((_, i) => Math.max(0, totalDisp + (i - 2) * 8));
+        // Parse real trend data from Django
+        const trendLabels = JSON.parse(document.getElementById('trend-labels-data').textContent);
+        const trendProd = JSON.parse(document.getElementById('trend-production-data').textContent);
+        const trendDisp = JSON.parse(document.getElementById('trend-dispatch-data').textContent);
 
         new Chart(ctx3.getContext('2d'), {
             type: 'line',
             data: {
-                labels: months,
+                labels: trendLabels,
                 datasets: [
                     {
                         label: 'Production',
-                        data: prodTrend,
+                        data: trendProd,
                         borderColor: '#10b981',
                         backgroundColor: 'rgba(16, 185, 129, 0.1)',
                         fill: true,
@@ -608,7 +613,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     {
                         label: 'Dispatch',
-                        data: dispTrend,
+                        data: trendDisp,
                         borderColor: '#ef4444',
                         backgroundColor: 'rgba(239, 68, 68, 0.1)',
                         fill: true,

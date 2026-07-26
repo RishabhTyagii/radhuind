@@ -9,9 +9,10 @@ from django.db import transaction
 from django.db.models import Sum
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import TallyItemMapping, TallyInvoice, TallySyncLog, MODULE_CHOICES
+from .models import TallyItemMapping, TallyInvoice, TallySyncLog, TallyPendingItem, MODULE_CHOICES
 
 
 def _to_decimal(value):
@@ -69,15 +70,69 @@ def _reduce_stock_for_item(module, item, qty, voucher_number, voucher_date, part
     return True, "ok"
 
 
+def _maybe_mark_invoice_synced(invoice):
+    """If an invoice has no more unresolved pending items, mark it as fully synced."""
+    still_pending = invoice.pending_items.filter(resolved=False).exists()
+    if not still_pending and not invoice.stock_synced:
+        invoice.stock_synced = True
+        invoice.save(update_fields=["stock_synced"])
+
+
+def retry_pending_items(tally_item_name=None):
+    """Re-attempt any unresolved pending line items (unmapped or insufficient
+    stock). Pass tally_item_name to scope the retry to just that item (fast,
+    used right after a mapping is added); leave it None to retry everything
+    (used opportunistically whenever the Tally webhook is pinged, so stock
+    increases from Production entries get picked up automatically within a
+    few minutes without touching the other 3 stock apps).
+    Returns how many were resolved.
+    """
+    pending_qs = TallyPendingItem.objects.filter(resolved=False).select_related("invoice")
+    if tally_item_name:
+        pending_qs = pending_qs.filter(tally_item_name__iexact=tally_item_name)
+
+    resolved_count = 0
+    for pending in pending_qs:
+        mapping = TallyItemMapping.objects.filter(tally_item_name__iexact=pending.tally_item_name).first()
+        if not mapping:
+            continue  # still unmapped, leave as pending
+
+        item = mapping.get_item()
+        ok, msg = _reduce_stock_for_item(
+            mapping.module, item, pending.qty,
+            pending.voucher_number, pending.voucher_date, pending.party_name,
+        )
+        if ok:
+            pending.resolved = True
+            pending.resolved_at = timezone.now()
+            pending.save(update_fields=["resolved", "resolved_at"])
+            TallySyncLog.objects.create(
+                invoice=pending.invoice, level="info",
+                message=f"Retry se resolve ho gaya: '{pending.tally_item_name}' x{pending.qty} — stock ab minus ho gaya.",
+            )
+            _maybe_mark_invoice_synced(pending.invoice)
+            resolved_count += 1
+        # if still not ok (e.g. still insufficient stock), leave pending as-is;
+        # it'll be tried again next time this function runs.
+
+    return resolved_count
+
+
 @csrf_exempt
 def tally_webhook(request):
-    """Tally (via TDL) POSTs a Sales voucher here as JSON. Protected by API key header."""
+    """Tally (via the bridge script) POSTs a Sales voucher here as JSON.
+    Protected by API key header."""
     if request.method != "POST":
         return JsonResponse({"error": "POST only"}, status=405)
 
     api_key = request.headers.get("X-API-KEY", "")
     if not settings.TALLY_SYNC_API_KEY or api_key != settings.TALLY_SYNC_API_KEY:
         return JsonResponse({"error": "invalid api key"}, status=403)
+
+    # Opportunistic retry: since the bridge script pings us every few minutes
+    # anyway, use each ping to also re-check any previously-pending items
+    # (e.g. stock that has since been topped up via a Production entry).
+    retry_pending_items()
 
     try:
         payload = json.loads(request.body.decode("utf-8"))
@@ -104,6 +159,13 @@ def tally_webhook(request):
         voucher_number=voucher_number,
         voucher_date=voucher_date,
         party_name=party_name,
+        party_gstin=str(payload.get("party_gstin", "")).strip(),
+        party_address=str(payload.get("party_address", "")).strip(),
+        consignee_name=str(payload.get("consignee_name", "")).strip(),
+        consignee_gstin=str(payload.get("consignee_gstin", "")).strip(),
+        place_of_supply=str(payload.get("place_of_supply", "")).strip(),
+        state_name=str(payload.get("state_name", "")).strip(),
+        gst_registration_type=str(payload.get("gst_registration_type", "")).strip(),
         taxable_value=_to_decimal(payload.get("taxable_value")),
         cgst=_to_decimal(payload.get("cgst")),
         sgst=_to_decimal(payload.get("sgst")),
@@ -123,6 +185,11 @@ def tally_webhook(request):
             all_ok = False
             msg = f"Item '{tally_name}' mapped nahi hai — stock update nahi hua is item ke liye. Ise mapping page mein map karo."
             TallySyncLog.objects.create(invoice=invoice, level="warning", message=msg)
+            TallyPendingItem.objects.create(
+                invoice=invoice, tally_item_name=tally_name, qty=qty,
+                voucher_number=voucher_number, voucher_date=voucher_date,
+                party_name=party_name, reason="unmapped",
+            )
             results.append({"item": tally_name, "ok": False, "reason": "unmapped"})
             continue
 
@@ -133,6 +200,11 @@ def tally_webhook(request):
         if not ok:
             all_ok = False
             TallySyncLog.objects.create(invoice=invoice, level="error", message=msg)
+            TallyPendingItem.objects.create(
+                invoice=invoice, tally_item_name=tally_name, qty=qty,
+                voucher_number=voucher_number, voucher_date=voucher_date,
+                party_name=party_name, reason="insufficient_stock",
+            )
         results.append({"item": tally_name, "ok": ok, "reason": msg})
 
     invoice.stock_synced = all_ok and len(items) > 0
@@ -145,19 +217,55 @@ def tally_webhook(request):
 
 
 @login_required
-def sales_summary(request):
-    month_str = request.GET.get("month", "")
-    today = datetime.date.today()
-    if month_str:
-        try:
-            y, m = month_str.split("-")
-            year, month = int(y), int(m)
-        except ValueError:
-            year, month = today.year, today.month
+def retry_pending_now(request):
+    """Manual 'Retry Pending Now' button on the Sync Log page."""
+    count = retry_pending_items()
+    if count:
+        messages.success(request, f"{count} pending item(s) ab resolve ho gaye — stock update ho gaya.")
     else:
-        year, month = today.year, today.month
+        messages.info(request, "Abhi koi pending item resolve nahi hua (ya to mapping abhi bhi missing hai, ya stock abhi bhi kam hai).")
+    return redirect("tally_sync_log")
 
-    invoices = TallyInvoice.objects.filter(voucher_date__year=year, voucher_date__month=month)
+
+@login_required
+def sales_summary(request):
+    month_str = request.GET.get("month", "").strip()
+    from_date_str = request.GET.get("from_date", "").strip()
+    to_date_str = request.GET.get("to_date", "").strip()
+    party_query = request.GET.get("party", "").strip()
+    today = datetime.date.today()
+
+    invoices = TallyInvoice.objects.all()
+    month_value = ""
+
+    if from_date_str or to_date_str:
+        # Date-range mode takes priority over the month picker when used.
+        if from_date_str:
+            try:
+                from_date = datetime.datetime.strptime(from_date_str, "%Y-%m-%d").date()
+                invoices = invoices.filter(voucher_date__gte=from_date)
+            except ValueError:
+                from_date_str = ""
+        if to_date_str:
+            try:
+                to_date = datetime.datetime.strptime(to_date_str, "%Y-%m-%d").date()
+                invoices = invoices.filter(voucher_date__lte=to_date)
+            except ValueError:
+                to_date_str = ""
+    else:
+        if month_str:
+            try:
+                y, m = month_str.split("-")
+                year, month = int(y), int(m)
+            except ValueError:
+                year, month = today.year, today.month
+        else:
+            year, month = today.year, today.month
+        invoices = invoices.filter(voucher_date__year=year, voucher_date__month=month)
+        month_value = f"{year:04d}-{month:02d}"
+
+    if party_query:
+        invoices = invoices.filter(party_name__icontains=party_query)
 
     total_sale = invoices.aggregate(t=Sum("total_value"))["t"] or 0
     total_taxable = invoices.aggregate(t=Sum("taxable_value"))["t"] or 0
@@ -169,7 +277,10 @@ def sales_summary(request):
 
     context = {
         "invoices": invoices.order_by("-voucher_date")[:200],
-        "month_value": f"{year:04d}-{month:02d}",
+        "month_value": month_value,
+        "from_date": from_date_str,
+        "to_date": to_date_str,
+        "party_query": party_query,
         "total_sale": total_sale,
         "total_taxable": total_taxable,
         "total_cgst": total_cgst,
@@ -179,6 +290,19 @@ def sales_summary(request):
         "unmapped_count": unmapped_count,
     }
     return render(request, "tallysync/sales_summary.html", context)
+
+
+@login_required
+def invoice_detail(request, pk):
+    invoice = get_object_or_404(TallyInvoice, pk=pk)
+    items = []
+    try:
+        payload = json.loads(invoice.raw_payload or "{}")
+        items = payload.get("items", [])
+    except json.JSONDecodeError:
+        items = []
+    pending_items = invoice.pending_items.all()
+    return render(request, "tallysync/invoice_detail.html", {"invoice": invoice, "items": items, "pending_items": pending_items})
 
 
 @login_required
@@ -206,7 +330,16 @@ def add_mapping(request):
                 tally_item_name=tally_item_name,
                 defaults={"module": module, "item_id": int(item_id)},
             )
-            messages.success(request, f"Mapping save ho gayi: '{tally_item_name}' → {module} #{item_id}")
+            # Instantly retry any pending items waiting on this exact item name.
+            resolved = retry_pending_items(tally_item_name=tally_item_name)
+            if resolved:
+                messages.success(
+                    request,
+                    f"Mapping save ho gayi: '{tally_item_name}' → {module} #{item_id}. "
+                    f"Saath hi {resolved} pending item bhi resolve ho gaya, stock update ho gaya!"
+                )
+            else:
+                messages.success(request, f"Mapping save ho gayi: '{tally_item_name}' → {module} #{item_id}")
             return redirect("tally_mapping_list")
         else:
             messages.error(request, "Sabhi fields bharna zaroori hai.")
@@ -222,4 +355,5 @@ def add_mapping(request):
 @login_required
 def sync_log(request):
     logs = TallySyncLog.objects.select_related("invoice")[:300]
-    return render(request, "tallysync/sync_log.html", {"logs": logs})
+    pending = TallyPendingItem.objects.filter(resolved=False).select_related("invoice")
+    return render(request, "tallysync/sync_log.html", {"logs": logs, "pending": pending})

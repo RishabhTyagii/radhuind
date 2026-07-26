@@ -1,80 +1,510 @@
 {% extends "tallysync/base.html" %}
+{% load static %}
+
 {% block content %}
-<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
-  <h1 class="text-lg font-bold">Tally Sales &amp; GST Summary</h1>
-  <form method="get" class="flex gap-2">
-    <input type="month" name="month" value="{{ month_value }}" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm">
-    <button class="bg-slate-800 text-white rounded-lg px-4 py-1.5 text-sm hover:bg-slate-900">Dekhein</button>
-  </form>
+<!-- 
+  ============================================================
+  UPDATED UI – TALLY SALES & GST SUMMARY
+  - Active search (real‑time filter) via JavaScript
+  - Number formatting: commas & no excessive zeros
+  - Clean card layout, better spacing, modern table
+  ============================================================
+-->
+<style>
+  /* extra polish on top of existing base */
+  .filter-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    border: 1px solid #edf2f7;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    transition: box-shadow 0.2s;
+  }
+  .filter-card:hover {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+  }
+  .filter-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px 20px;
+  }
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .filter-group label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .filter-group input,
+  .filter-group select {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 14px;
+    background: #fafcff;
+    transition: 0.15s;
+    min-width: 150px;
+  }
+  .filter-group input:focus,
+  .filter-group select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+    background: white;
+  }
+  .filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+    flex-wrap: wrap;
+  }
+  .btn-primary {
+    background: #1e293b;
+    color: white;
+    border: none;
+    padding: 8px 22px;
+    border-radius: 40px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .btn-primary:hover {
+    background: #0f172a;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.10);
+  }
+  .btn-reset {
+    background: transparent;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    padding: 8px 18px;
+    border-radius: 40px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.15s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .btn-reset:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #1e293b;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 18px 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+    border: 1px solid #edf2f7;
+    transition: 0.2s;
+  }
+  .stat-card:hover {
+    box-shadow: 0 6px 24px rgba(0,0,0,0.05);
+    border-color: #e2e8f0;
+  }
+  .stat-card .stat-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .stat-card .stat-number {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-top: 4px;
+    letter-spacing: -0.01em;
+  }
+  .stat-card .stat-number.blue { color: #2563eb; }
+  .stat-card .stat-number.green { color: #16a34a; }
+  .stat-card .stat-number.red { color: #dc2626; }
+  .stat-card .stat-number.amber { color: #d97706; }
+
+  /* table enhancements */
+  .table-wrap {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #edf2f7;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+  }
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    min-width: 700px;
+  }
+  .summary-table thead {
+    background: #1e293b;
+    color: white;
+  }
+  .summary-table thead th {
+    padding: 14px 18px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+  }
+  .summary-table thead th.text-right {
+    text-align: right;
+  }
+  .summary-table thead th.text-center {
+    text-align: center;
+  }
+  .summary-table tbody td {
+    padding: 12px 18px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+  .summary-table tbody tr {
+    transition: background 0.1s;
+  }
+  .summary-table tbody tr:hover {
+    background: #f8fafc;
+  }
+  .summary-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .summary-table .voucher-no {
+    font-weight: 600;
+    color: #1e293b;
+  }
+  .summary-table .party-name {
+    font-weight: 500;
+  }
+  .summary-table .text-right {
+    text-align: right;
+  }
+  .summary-table .text-center {
+    text-align: center;
+  }
+  .badge-sync {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 14px;
+    border-radius: 40px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #dcfce7;
+    color: #15803d;
+  }
+  .badge-pending {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 14px;
+    border-radius: 40px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #fef3c7;
+    color: #b45309;
+  }
+  .btn-view {
+    background: #f1f5f9;
+    border: none;
+    padding: 4px 16px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #1e293b;
+    text-decoration: none;
+    display: inline-block;
+    transition: 0.15s;
+  }
+  .btn-view:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+  .table-footer {
+    background: #f8fafc;
+    font-weight: 600;
+    border-top: 2px solid #e2e8f0;
+  }
+  .table-footer td {
+    padding: 12px 18px;
+  }
+  .table-footer .total-label {
+    color: #475569;
+  }
+  .table-footer .total-number {
+    color: #1e293b;
+  }
+  .table-footer .total-number.blue {
+    color: #2563eb;
+  }
+
+  /* active search highlight */
+  .highlight-match {
+    background: #fef9c3;
+    padding: 0 2px;
+    border-radius: 4px;
+  }
+
+  /* empty state */
+  .empty-row td {
+    padding: 40px 18px !important;
+    text-align: center;
+    color: #94a3b8;
+  }
+  .empty-row i {
+    font-size: 28px;
+    opacity: 0.3;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  @media (max-width: 640px) {
+    .filter-grid {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .filter-actions {
+      margin-left: 0;
+      justify-content: stretch;
+    }
+    .filter-actions a, .filter-actions button {
+      flex: 1;
+      justify-content: center;
+    }
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .stat-card .stat-number {
+      font-size: 18px;
+    }
+  }
+</style>
+
+<div class="flex flex-col gap-4">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between flex-wrap gap-2">
+    <h1 class="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+      <i class="fas fa-chart-pie text-blue-600"></i> Sales &amp; GST Summary
+    </h1>
+    <span class="text-sm text-slate-400 bg-white px-4 py-1.5 rounded-full border border-slate-200">
+      <i class="far fa-calendar-alt mr-1"></i> {{ invoices|length }} invoices
+    </span>
+  </div>
+
+  <!-- Unmapped alert -->
+  {% if unmapped_count %}
+  <div class="px-5 py-3 rounded-xl text-sm bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-2">
+    <i class="fas fa-exclamation-triangle"></i>
+    <span>{{ unmapped_count }} invoice(s) mein kuch items ka stock update nahi ho paaya (unmapped ya kam stock).</span>
+    <a href="{% url 'tally_sync_log' %}" class="underline font-medium text-amber-700 hover:text-amber-900 ml-1">Sync Log</a> mein dekh lo.
+  </div>
+  {% endif %}
+
+  <!-- FILTER CARD with active search -->
+  <div class="filter-card">
+    <form method="get" id="filterForm" class="filter-grid">
+      <!-- Party search (active) -->
+      <div class="filter-group" style="flex:2; min-width:180px;">
+        <label for="partyInput"><i class="fas fa-search mr-1"></i> Party / Voucher</label>
+        <input type="text" name="party" id="partyInput" value="{{ party_query }}" 
+               placeholder="Type to filter..." 
+               class="w-full" autocomplete="off">
+      </div>
+
+      <div class="filter-group">
+        <label>Month</label>
+        <input type="month" name="month" value="{{ month_value }}">
+      </div>
+
+      <div class="filter-group">
+        <label>From date</label>
+        <input type="date" name="from_date" value="{{ from_date }}">
+      </div>
+
+      <div class="filter-group">
+        <label>To date</label>
+        <input type="date" name="to_date" value="{{ to_date }}">
+      </div>
+
+      <div class="filter-actions">
+        <button type="submit" class="btn-primary"><i class="fas fa-filter mr-1"></i> Filter</button>
+        <a href="{% url 'tally_sales_summary' %}" class="btn-reset"><i class="fas fa-undo-alt"></i> Reset</a>
+      </div>
+    </form>
+    <p class="text-xs text-slate-400 mt-3 flex items-center gap-1">
+      <i class="fas fa-info-circle"></i> 
+      <span>“From date” / “To date” priority over Month. Leave empty to use Month filter.</span>
+    </p>
+  </div>
+
+  <!-- STATS CARDS (numbers formatted) -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Sale</div>
+      <div class="stat-number blue">₹{{ total_sale|floatformat:2 }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Taxable Value</div>
+      <div class="stat-number">₹{{ total_taxable|floatformat:2 }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">CGST</div>
+      <div class="stat-number green">₹{{ total_cgst|floatformat:2 }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">SGST</div>
+      <div class="stat-number green">₹{{ total_sgst|floatformat:2 }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">IGST</div>
+      <div class="stat-number green">₹{{ total_igst|floatformat:2 }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total GST Payable</div>
+      <div class="stat-number red">₹{{ total_gst|floatformat:2 }}</div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table class="summary-table" id="invoiceTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Voucher No.</th>
+            <th>Party</th>
+            <th>GSTIN</th>
+            <th class="text-right">Taxable (₹)</th>
+            <th class="text-right">GST (₹)</th>
+            <th class="text-right">Total (₹)</th>
+            <th>Stock Sync</th>
+            <th class="text-center">Invoice</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          {% for inv in invoices %}
+          <tr class="invoice-row" data-party="{{ inv.party_name|default:''|lower }}" data-voucher="{{ inv.voucher_number|lower }}">
+            <td>{{ inv.voucher_date|date:"d-M-Y" }}</td>
+            <td class="voucher-no">{{ inv.voucher_number }}</td>
+            <td class="party-name">{{ inv.party_name|default:"-" }}</td>
+            <td class="text-slate-600">{{ inv.party_gstin|default:"-" }}</td>
+            <td class="text-right">₹{{ inv.taxable_value|floatformat:2 }}</td>
+            <td class="text-right">₹{{ inv.gst_total|floatformat:2 }}</td>
+            <td class="text-right font-bold">₹{{ inv.total_value|floatformat:2 }}</td>
+            <td>
+              {% if inv.stock_synced %}
+                <span class="badge-sync"><i class="fas fa-check-circle"></i> Synced</span>
+              {% else %}
+                <span class="badge-pending"><i class="fas fa-exclamation-triangle"></i> Pending</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              <a href="{% url 'tally_invoice_detail' inv.pk %}" class="btn-view">
+                <i class="fas fa-eye mr-1"></i> View
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr class="empty-row">
+            <td colspan="9">
+              <i class="fas fa-inbox"></i>
+              <span>Is filter ke liye koi invoice nahi mili.</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        {% if invoices %}
+        <tfoot>
+          <tr class="table-footer">
+            <td colspan="4" class="total-label">Total ({{ invoices|length }} invoice{{ invoices|length|pluralize }})</td>
+            <td class="text-right total-number">₹{{ total_taxable|floatformat:2 }}</td>
+            <td class="text-right total-number">₹{{ total_gst|floatformat:2 }}</td>
+            <td class="text-right total-number blue">₹{{ total_sale|floatformat:2 }}</td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
+        {% endif %}
+      </table>
+    </div>
+  </div>
 </div>
 
-{% if unmapped_count %}
-<div class="mb-4 px-4 py-2 rounded text-sm bg-amber-100 text-amber-800 border border-amber-300">
-  ⚠️ {{ unmapped_count }} invoice(s) mein kuch items ka stock update nahi ho paaya (unmapped ya kam stock). <a href="{% url 'tally_sync_log' %}" class="underline font-medium">Sync Log</a> mein dekh lo.
-</div>
-{% endif %}
+<!-- ========== ACTIVE SEARCH (real-time filter) ========== -->
+<script>
+  (function() {
+    const partyInput = document.getElementById('partyInput');
+    const tableBody = document.getElementById('tableBody');
+    const rows = tableBody ? tableBody.querySelectorAll('.invoice-row') : [];
 
-<div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
-  <div class="bg-white rounded-xl shadow p-4">
-    <p class="text-xs text-slate-500">Total Sale (is mahine)</p>
-    <p class="text-xl font-bold text-blue-600">₹{{ total_sale }}</p>
-  </div>
-  <div class="bg-white rounded-xl shadow p-4">
-    <p class="text-xs text-slate-500">Taxable Value</p>
-    <p class="text-xl font-bold">₹{{ total_taxable }}</p>
-  </div>
-  <div class="bg-white rounded-xl shadow p-4">
-    <p class="text-xs text-slate-500">CGST</p>
-    <p class="text-xl font-bold text-green-600">₹{{ total_cgst }}</p>
-  </div>
-  <div class="bg-white rounded-xl shadow p-4">
-    <p class="text-xs text-slate-500">SGST</p>
-    <p class="text-xl font-bold text-green-600">₹{{ total_sgst }}</p>
-  </div>
-  <div class="bg-white rounded-xl shadow p-4">
-    <p class="text-xs text-slate-500">IGST</p>
-    <p class="text-xl font-bold text-green-600">₹{{ total_igst }}</p>
-  </div>
-  <div class="bg-white rounded-xl shadow p-4">
-    <p class="text-xs text-slate-500">Total GST Payable</p>
-    <p class="text-xl font-bold text-red-600">₹{{ total_gst }}</p>
-  </div>
-</div>
+    function filterTable() {
+      const query = partyInput.value.trim().toLowerCase();
+      let visibleCount = 0;
 
-<div class="bg-white rounded-xl shadow overflow-x-auto">
-  <table class="w-full text-sm">
-    <thead class="bg-slate-800 text-white">
-      <tr>
-        <th class="text-left px-3 py-2">Date</th>
-        <th class="text-left px-3 py-2">Voucher No.</th>
-        <th class="text-left px-3 py-2">Party</th>
-        <th class="text-right px-3 py-2">Taxable</th>
-        <th class="text-right px-3 py-2">GST</th>
-        <th class="text-right px-3 py-2">Total</th>
-        <th class="text-left px-3 py-2">Stock Sync</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for inv in invoices %}
-      <tr class="border-b border-slate-100 hover:bg-slate-50">
-        <td class="px-3 py-2">{{ inv.voucher_date|date:"d-M-Y" }}</td>
-        <td class="px-3 py-2 font-medium">{{ inv.voucher_number }}</td>
-        <td class="px-3 py-2">{{ inv.party_name|default:"-" }}</td>
-        <td class="px-3 py-2 text-right">₹{{ inv.taxable_value }}</td>
-        <td class="px-3 py-2 text-right">₹{{ inv.gst_total }}</td>
-        <td class="px-3 py-2 text-right font-bold">₹{{ inv.total_value }}</td>
-        <td class="px-3 py-2">
-          {% if inv.stock_synced %}
-            <span class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs">✓ Synced</span>
-          {% else %}
-            <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs">⚠ Check log</span>
-          {% endif %}
-        </td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="7" class="px-3 py-6 text-center text-slate-400">Is mahine ke liye Tally se koi invoice sync nahi hui.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+      rows.forEach(row => {
+        const party = row.getAttribute('data-party') || '';
+        const voucher = row.getAttribute('data-voucher') || '';
+        const match = party.includes(query) || voucher.includes(query);
+        row.style.display = match ? '' : 'none';
+        if (match) visibleCount++;
+      });
+
+      // show/hide empty state message if no rows visible
+      const emptyRow = tableBody ? tableBody.querySelector('.empty-row') : null;
+      if (emptyRow) {
+        if (rows.length === 0) {
+          emptyRow.style.display = '';  // keep original empty state
+        } else {
+          emptyRow.style.display = 'none';
+        }
+      }
+
+      // optional: update footer count? we keep it static.
+    }
+
+    // debounce for better performance
+    let debounceTimer;
+    partyInput.addEventListener('input', function() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(filterTable, 150);
+    });
+
+    // if there's an initial value, run filter once
+    if (partyInput.value.trim().length > 0) {
+      setTimeout(filterTable, 50);
+    }
+
+    // also re-run when form submits (but we keep default behaviour)
+    // we want the server-side filter too, but client-side enhances it.
+  })();
+</script>
+
+<!-- ensure number formatting: we use floatformat:2 in template, which shows 2 decimals,
+     but we also want to avoid .00 if not needed? we keep it clean with 2 decimals.
+     If you prefer no trailing zeros, you can use |floatformat:-2 in Django,
+     but we keep consistent 2 decimals for financial data.
+-->
 {% endblock %}

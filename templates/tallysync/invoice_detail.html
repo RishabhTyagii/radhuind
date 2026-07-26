@@ -1,0 +1,453 @@
+{% extends "tallysync/base.html" %}
+{% load static %}
+
+{% block title %}Invoice #{{ invoice.voucher_number }} - Details{% endblock %}
+
+{% block content %}
+<style>
+    /* --- Invoice Detail Styles --- */
+    .invoice-container {
+        padding: 20px 0;
+    }
+
+    /* Page Header */
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .page-header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .page-header-icon {
+        width: 40px;
+        height: 40px;
+        background: #f1f5f9;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #475569;
+    }
+    .page-header h1 {
+        font-size: 22px;
+        font-weight: 600;
+        color: #1a1f2b;
+    }
+    .page-header .subtitle {
+        font-size: 13px;
+        color: #6b7280;
+        display: block;
+        margin-top: 2px;
+    }
+    .page-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .back-link {
+        font-size: 13px;
+        color: #6b7280;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: all 0.15s ease;
+    }
+    .back-link:hover {
+        color: #3b82f6;
+    }
+    .pdf-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 18px;
+        background: #dc2626;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-decoration: none;
+    }
+    .pdf-btn:hover {
+        background: #b91c1c;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+    }
+
+    /* Info Cards */
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .info-card {
+        background: #ffffff;
+        border: 1px solid #e9edf2;
+        border-radius: 12px;
+        padding: 20px 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.2s ease;
+    }
+    .info-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        border-color: #d0d7e0;
+    }
+    .info-card h2 {
+        font-size: 13px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        margin-bottom: 8px;
+    }
+    .info-card .field {
+        font-size: 14px;
+        color: #1a1f2b;
+        padding: 2px 0;
+        display: flex;
+        justify-content: space-between;
+    }
+    .info-card .field .label {
+        color: #6b7280;
+        font-weight: 400;
+    }
+    .info-card .field .value {
+        font-weight: 500;
+    }
+    .info-card .field .value.highlight {
+        color: #3b82f6;
+    }
+    .info-card .address {
+        font-size: 14px;
+        color: #1a1f2b;
+        white-space: pre-line;
+        margin-top: 4px;
+    }
+
+    /* Status Badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 500;
+    }
+    .status-synced {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+    .status-pending {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    /* Table Container */
+    .table-container {
+        background: #ffffff;
+        border: 1px solid #e9edf2;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        margin-bottom: 24px;
+    }
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .table-wrapper::-webkit-scrollbar {
+        height: 6px;
+    }
+    .table-wrapper::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+
+    /* Table */
+    .invoice-table {
+        width: 100%;
+        min-width: 400px;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+    .invoice-table thead th {
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 600;
+        color: #ffffff;
+        background: #1e293b;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        white-space: nowrap;
+    }
+    .invoice-table thead th:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 20%;
+        height: 60%;
+        width: 1px;
+        background: rgba(255, 255, 255, 0.08);
+    }
+    .invoice-table tbody td {
+        padding: 10px 16px;
+        border-bottom: 1px solid #f1f5f9;
+        white-space: nowrap;
+    }
+    .invoice-table tbody tr {
+        transition: all 0.1s ease;
+    }
+    .invoice-table tbody tr:hover {
+        background: #f8fafc;
+    }
+    .invoice-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Summary Box */
+    .summary-box {
+        background: #ffffff;
+        border: 1px solid #e9edf2;
+        border-radius: 12px;
+        padding: 20px 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        max-width: 320px;
+        margin-left: auto;
+        transition: all 0.2s ease;
+    }
+    .summary-box:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        border-color: #d0d7e0;
+    }
+    .summary-box .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        font-size: 14px;
+    }
+    .summary-box .summary-row .label {
+        color: #6b7280;
+        font-weight: 400;
+    }
+    .summary-box .summary-row .value {
+        font-weight: 500;
+    }
+    .summary-box .summary-row.total {
+        border-top: 2px solid #e9edf2;
+        margin-top: 8px;
+        padding-top: 12px;
+        font-weight: 700;
+        font-size: 16px;
+    }
+    .summary-box .summary-row.total .value {
+        color: #2563eb;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+        .summary-box {
+            max-width: 100%;
+            margin-left: 0;
+        }
+        .page-header h1 {
+            font-size: 18px;
+        }
+        .page-header-actions {
+            width: 100%;
+        }
+        .back-link {
+            flex: 1;
+        }
+        .pdf-btn {
+            flex: 1;
+            justify-content: center;
+        }
+        .invoice-table thead th,
+        .invoice-table tbody td {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+    }
+</style>
+
+<div class="invoice-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-left">
+            <div class="page-header-icon">
+                <i class="fas fa-file-invoice"></i>
+            </div>
+            <div>
+                <h1>Invoice #{{ invoice.voucher_number }}</h1>
+                <span class="subtitle">View invoice details and items</span>
+            </div>
+        </div>
+        <div class="page-header-actions">
+            <a href="{% url 'tally_sales_summary' %}" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to Summary
+            </a>
+            <a href="" class="pdf-btn" target="_blank">
+                <i class="fas fa-file-pdf"></i> Download PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Info Cards -->
+    <div class="info-grid">
+        <!-- Party Details -->
+        <div class="info-card">
+            <h2><i class="fas fa-user-tie mr-1"></i> Party Details</h2>
+            <div class="field">
+                <span class="label">Name</span>
+                <span class="value">{{ invoice.party_name|default:"-" }}</span>
+            </div>
+            <div class="field">
+                <span class="label">GSTIN</span>
+                <span class="value">{{ invoice.party_gstin|default:"-" }}</span>
+            </div>
+            <div class="address">{{ invoice.party_address|default:"-" }}</div>
+            <div class="field" style="margin-top: 4px;">
+                <span class="label">State</span>
+                <span class="value">{{ invoice.state_name|default:"-" }}</span>
+            </div>
+            <div class="field">
+                <span class="label">Place of Supply</span>
+                <span class="value">{{ invoice.place_of_supply|default:"-" }}</span>
+            </div>
+            <div class="field">
+                <span class="label">GST Registration</span>
+                <span class="value">{{ invoice.gst_registration_type|default:"-" }}</span>
+            </div>
+        </div>
+
+        <!-- Voucher Details -->
+        <div class="info-card">
+            <h2><i class="fas fa-receipt mr-1"></i> Voucher Details</h2>
+            <div class="field">
+                <span class="label">Date</span>
+                <span class="value">{{ invoice.voucher_date|date:"d-M-Y" }}</span>
+            </div>
+            <div class="field">
+                <span class="label">Voucher No.</span>
+                <span class="value highlight">{{ invoice.voucher_number }}</span>
+            </div>
+            <div class="field">
+                <span class="label">Synced At</span>
+                <span class="value">{{ invoice.synced_at|date:"d-M-Y H:i" }}</span>
+            </div>
+            <div class="field">
+                <span class="label">Status</span>
+                <span class="value">
+                    {% if invoice.stock_synced %}
+                        <span class="status-badge status-synced">
+                            <i class="fas fa-check-circle"></i> Stock Synced
+                        </span>
+                    {% else %}
+                        <span class="status-badge status-pending">
+                            <i class="fas fa-exclamation-triangle"></i> Check Sync Log
+                        </span>
+                    {% endif %}
+                </span>
+            </div>
+            {% if invoice.consignee_name %}
+            <div class="field" style="margin-top: 4px;">
+                <span class="label">Consignee</span>
+                <span class="value">{{ invoice.consignee_name }} ({{ invoice.consignee_gstin|default:"-" }})</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Items Table -->
+    <div class="table-container">
+        <div class="table-wrapper">
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th class="text-right">Quantity</th>
+                        <th class="text-right">Amount (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td class="font-medium">{{ item.name }}</td>
+                        <td class="text-right">{{ item.qty }}</td>
+                        <td class="text-right font-medium">₹{{ item.amount|default:0 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="empty-state text-center py-8 text-slate-400">
+                            <i class="fas fa-inbox text-3xl mb-2 block opacity-30"></i>
+                            No items found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-box">
+        <div class="summary-row">
+            <span class="label">Taxable Value</span>
+            <span class="value">₹{{ invoice.taxable_value|default:0 }}</span>
+        </div>
+        <div class="summary-row">
+            <span class="label">CGST</span>
+            <span class="value">₹{{ invoice.cgst|default:0 }}</span>
+        </div>
+        <div class="summary-row">
+            <span class="label">SGST</span>
+            <span class="value">₹{{ invoice.sgst|default:0 }}</span>
+        </div>
+        <div class="summary-row">
+            <span class="label">IGST</span>
+            <span class="value">₹{{ invoice.igst|default:0 }}</span>
+        </div>
+        <div class="summary-row total">
+            <span class="label">Total</span>
+            <span class="value">₹{{ invoice.total_value|default:0 }}</span>
+        </div>
+    </div>
+</div>
+
+<script>
+// Animate cards on load
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.info-card, .table-container, .summary-box');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(16px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.3s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100 + (index * 120));
+    });
+});
+</script>
+{% endblock %}

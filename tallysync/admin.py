@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import TallyItemMapping, TallyInvoice, TallySyncLog
+from .models import TallyItemMapping, TallyInvoice, TallySyncLog, TallyPendingItem
 
 
 @admin.register(TallyItemMapping)
@@ -20,3 +20,10 @@ class TallyInvoiceAdmin(admin.ModelAdmin):
 class TallySyncLogAdmin(admin.ModelAdmin):
     list_display = ("created_at", "level", "invoice", "message")
     list_filter = ("level",)
+    
+
+@admin.register(TallyPendingItem)
+class TallyPendingItemAdmin(admin.ModelAdmin):
+    list_display = ("tally_item_name", "qty", "reason", "voucher_number", "resolved", "created_at")
+    list_filter = ("reason", "resolved")
+    search_fields = ("tally_item_name", "voucher_number")

@@ -1,38 +1,379 @@
 {% extends "tallysync/base.html" %}
-{% block content %}
-<h1 class="text-lg font-bold mb-4">Tally Sync Log</h1>
-<p class="text-sm text-slate-500 mb-4">Yahan dikhta hai ki Tally se aaya har invoice sahi se process hua ya nahi — agar koi item unmapped ya kam stock ki wajah se fail hua ho to yahan warning dikhegi.</p>
+{% load static %}
 
-<div class="bg-white rounded-xl shadow overflow-x-auto">
-  <table class="w-full text-sm">
-    <thead class="bg-slate-800 text-white">
-      <tr>
-        <th class="text-left px-3 py-2">Time</th>
-        <th class="text-left px-3 py-2">Level</th>
-        <th class="text-left px-3 py-2">Invoice</th>
-        <th class="text-left px-3 py-2">Message</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for log in logs %}
-      <tr class="border-b border-slate-100 hover:bg-slate-50">
-        <td class="px-3 py-2">{{ log.created_at|date:"d-M-Y H:i" }}</td>
-        <td class="px-3 py-2">
-          {% if log.level == "error" %}
-            <span class="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs">Error</span>
-          {% elif log.level == "warning" %}
-            <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs">Warning</span>
-          {% else %}
-            <span class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs">Info</span>
-          {% endif %}
-        </td>
-        <td class="px-3 py-2">{{ log.invoice.voucher_number|default:"-" }}</td>
-        <td class="px-3 py-2 text-slate-600">{{ log.message }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="4" class="px-3 py-6 text-center text-slate-400">Abhi tak koi log nahi hai.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+{% block content %}
+<!-- 
+  ============================================================
+  TALLY SYNC LOG – PROFESSIONAL UI (ENGLISH)
+  - Clean card design with subtle shadows
+  - Status badges for pending / error / warning / info
+  - Responsive table with hover effects
+  - Pending items section with clear reason tags
+  - Modern typography and spacing
+  ============================================================
+-->
+<style>
+  /* extra polish – sync log specific */
+  .log-header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 24px;
+  }
+  .log-header .title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .log-header .title-row h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .log-header .title-row h1 i {
+    color: #2563eb;
+    font-size: 26px;
+  }
+  .log-header .sub-text {
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 720px;
+    background: #f8fafc;
+    padding: 12px 18px;
+    border-radius: 12px;
+    border-left: 4px solid #2563eb;
+  }
+  .btn-retry {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 28px;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.25);
+    text-decoration: none;
+  }
+  .btn-retry:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(37,99,235,0.35);
+  }
+  .btn-retry i {
+    font-size: 16px;
+  }
+
+  /* card wrapper */
+  .log-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #eef2f6;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+    overflow: hidden;
+    margin-bottom: 28px;
+    transition: box-shadow 0.2s;
+  }
+  .log-card:hover {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+  }
+  .log-card .card-header {
+    padding: 16px 24px;
+    background: #fafcff;
+    border-bottom: 1px solid #eef2f6;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .log-card .card-header .badge-count {
+    background: #f1f5f9;
+    color: #1e293b;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 2px 14px;
+    border-radius: 40px;
+    margin-left: 8px;
+  }
+  .log-card .card-header .badge-count.amber {
+    background: #fef3c7;
+    color: #b45309;
+  }
+
+  /* table base */
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+  .table-scroll::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+  .table-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 12px;
+  }
+
+  .log-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    min-width: 600px;
+  }
+  .log-table thead {
+    background: #1e293b;
+    color: white;
+  }
+  .log-table thead th {
+    padding: 14px 20px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+  }
+  .log-table thead th.text-right {
+    text-align: right;
+  }
+  .log-table thead th.text-center {
+    text-align: center;
+  }
+  .log-table tbody td {
+    padding: 12px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    color: #1e293b;
+  }
+  .log-table tbody tr {
+    transition: background 0.1s;
+  }
+  .log-table tbody tr:hover {
+    background: #f8fafc;
+  }
+  .log-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* badge styles */
+  .badge-level {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 14px;
+    border-radius: 40px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+  .badge-level.error {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+  .badge-level.warning {
+    background: #fef3c7;
+    color: #b45309;
+  }
+  .badge-level.info {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  .badge-reason {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 14px;
+    border-radius: 40px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-reason.unmapped {
+    background: #f3e8ff;
+    color: #6b21a5;
+  }
+  .badge-reason.insufficient {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .voucher-link {
+    color: #2563eb;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .voucher-link:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+  }
+
+  .empty-state td {
+    padding: 48px 20px !important;
+    text-align: center;
+    color: #94a3b8;
+  }
+  .empty-state i {
+    font-size: 32px;
+    opacity: 0.3;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  /* responsive */
+  @media (max-width: 640px) {
+    .log-header .title-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .btn-retry {
+      justify-content: center;
+    }
+    .log-card .card-header {
+      flex-wrap: wrap;
+    }
+    .log-table thead th,
+    .log-table tbody td {
+      padding: 10px 14px;
+      font-size: 13px;
+    }
+  }
+</style>
+
+<div class="log-header">
+  <div class="title-row">
+    <h1>
+      <i class="fas fa-history"></i> Sync Log
+    </h1>
+    <a href="{% url 'tally_retry_pending' %}" class="btn-retry">
+      <i class="fas fa-sync-alt"></i> Retry Pending Now
+    </a>
+  </div>
+  <div class="sub-text">
+    <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+    Track every invoice processed from Tally. If any item is unmapped or has insufficient stock, 
+    it appears here as <strong>pending</strong>. Once you fix mappings, click <strong>Retry Pending Now</strong> 
+    to attempt processing again.
+  </div>
 </div>
+
+<!-- ========== PENDING ITEMS SECTION ========== -->
+{% if pending %}
+<div class="log-card">
+  <div class="card-header">
+    <i class="fas fa-clock text-amber-600"></i>
+    <span style="font-weight:600; color:#1e293b;">Pending Items</span>
+    <span class="badge-count amber">{{ pending|length }}</span>
+    <span style="font-size:13px; color:#64748b; margin-left:auto;">awaiting resolution</span>
+  </div>
+  <div class="table-scroll">
+    <table class="log-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th class="text-right">Qty</th>
+          <th>Reason</th>
+          <th>Voucher</th>
+          <th>Party</th>
+          <th>Pending Since</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pending %}
+        <tr>
+          <td><strong>{{ p.tally_item_name }}</strong></td>
+          <td class="text-right">{{ p.qty }}</td>
+          <td>
+            {% if p.reason == "unmapped" %}
+              <span class="badge-reason unmapped"><i class="fas fa-puzzle-piece"></i> Not Mapped</span>
+            {% else %}
+              <span class="badge-reason insufficient"><i class="fas fa-boxes"></i> Insufficient Stock</span>
+            {% endif %}
+          </td>
+          <td><span class="voucher-link">{{ p.voucher_number }}</span></td>
+          <td>{{ p.party_name|default:"—" }}</td>
+          <td style="color:#64748b; font-size:13px;">{{ p.created_at|date:"d-M-Y H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- ========== ALL LOGS TABLE ========== -->
+<div class="log-card">
+  <div class="card-header">
+    <i class="fas fa-list-ul text-slate-600"></i>
+    <span style="font-weight:600; color:#1e293b;">Recent Logs</span>
+    <span class="badge-count">{{ logs|length }}</span>
+    <span style="font-size:13px; color:#64748b; margin-left:auto;">chronological order</span>
+  </div>
+  <div class="table-scroll">
+    <table class="log-table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Level</th>
+          <th>Invoice</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td style="white-space:nowrap; color:#475569;">{{ log.created_at|date:"d-M-Y H:i" }}</td>
+          <td>
+            {% if log.level == "error" %}
+              <span class="badge-level error"><i class="fas fa-times-circle"></i> Error</span>
+            {% elif log.level == "warning" %}
+              <span class="badge-level warning"><i class="fas fa-exclamation-triangle"></i> Warning</span>
+            {% else %}
+              <span class="badge-level info"><i class="fas fa-check-circle"></i> Info</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if log.invoice %}
+              <a href="{% url 'tally_invoice_detail' log.invoice.pk %}" class="voucher-link">
+                {{ log.invoice.voucher_number|default:"—" }}
+              </a>
+            {% else %}
+              <span style="color:#94a3b8;">—</span>
+            {% endif %}
+          </td>
+          <td style="color:#334155; max-width:400px; word-break:break-word;">{{ log.message }}</td>
+        </tr>
+        {% empty %}
+        <tr class="empty-state">
+          <td colspan="4">
+            <i class="fas fa-inbox"></i>
+            <span>No logs available yet.</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- optional: auto-refresh hint (no auto refresh) -->
+<script>
+  // subtle hover effect on rows already handled by CSS
+  document.addEventListener('DOMContentLoaded', function() {
+    // highlight any pending badge count if exists
+  });
+</script>
+
 {% endblock %}

@@ -80,7 +80,7 @@ PROBE_XML = """<ENVELOPE>
         <TDLMESSAGE>
           <COLLECTION NAME="RadhuVoucherBridge" ISMODIFY="No">
             <TYPE>Voucher</TYPE>
-            <FETCH>Date, VoucherNumber, VoucherTypeName, PartyLedgerName, Amount, AllLedgerEntries.LedgerName, AllLedgerEntries.Amount, AllInventoryEntries.StockItemName, AllInventoryEntries.ActualQty, AllInventoryEntries.Rate, AllInventoryEntries.Amount</FETCH>
+            <FETCH>Date, VoucherNumber, VoucherTypeName, PartyLedgerName, PartyGSTIN, PlaceOfSupply, ConsigneeGSTIN, ConsigneeMailingName, GSTRegistrationType, StateName, Amount, AllLedgerEntries.LedgerName, AllLedgerEntries.Amount, AllInventoryEntries.StockItemName, AllInventoryEntries.ActualQty, AllInventoryEntries.Rate, AllInventoryEntries.Amount</FETCH>
             <FILTER>RadhuOnlySales</FILTER>
           </COLLECTION>
           <SYSTEM TYPE="Formulae" NAME="RadhuOnlySales">$VoucherTypeName = "Sales"</SYSTEM>
@@ -89,6 +89,67 @@ PROBE_XML = """<ENVELOPE>
     </DESC>
   </BODY>
 </ENVELOPE>"""
+
+
+LEDGER_ADDRESS_XML = """<ENVELOPE>
+  <HEADER>
+    <VERSION>1</VERSION>
+    <TALLYREQUEST>Export</TALLYREQUEST>
+    <TYPE>Collection</TYPE>
+    <ID>RadhuLedgerAddress</ID>
+  </HEADER>
+  <BODY>
+    <DESC>
+      <STATICVARIABLES>
+        <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
+      </STATICVARIABLES>
+      <TDL>
+        <TDLMESSAGE>
+          <COLLECTION NAME="RadhuLedgerAddress" ISMODIFY="No">
+            <TYPE>Ledger</TYPE>
+            <FETCH>Name, Address, PinCode</FETCH>
+            <FILTER>RadhuMatchLedger</FILTER>
+          </COLLECTION>
+          <SYSTEM TYPE="Formulae" NAME="RadhuMatchLedger">$Name = "{ledger_name}"</SYSTEM>
+        </TDLMESSAGE>
+      </TDL>
+    </DESC>
+  </BODY>
+</ENVELOPE>"""
+
+_address_cache = {}  # party_name -> "line1, line2, line3 - pincode" (per script run)
+
+
+def fetch_party_address(party_name):
+    """Looks up a party's mailing address from their Ledger master (not the
+    voucher - Tally stores address on the ledger, not per-invoice). Cached
+    per script run so we don't re-ask Tally for the same party repeatedly."""
+    if not party_name or party_name.lower() == "cash":
+        return ""
+    if party_name in _address_cache:
+        return _address_cache[party_name]
+
+    xml_request = LEDGER_ADDRESS_XML.format(ledger_name=party_name)
+    try:
+        resp = requests.post(
+            TALLY_URL,
+            data=xml_request.encode("utf-8"),
+            headers={"Content-Type": "text/xml; charset=utf-8"},
+            timeout=15,
+        )
+        resp.raise_for_status()
+        root = ET.fromstring(_sanitize_xml(resp.text))
+        lines = [el.text.strip() for el in root.iter("ADDRESS") if el.text and el.text.strip()]
+        pincode = _txt(root, ".//PINCODE")
+        address = ", ".join(lines)
+        if pincode:
+            address = f"{address} - {pincode}" if address else pincode
+    except Exception as e:
+        print(f"  (could not fetch address for '{party_name}': {e})")
+        address = ""
+
+    _address_cache[party_name] = address
+    return address
 
 
 def fetch_vouchers_xml(from_date, to_date):
@@ -134,6 +195,12 @@ def parse_vouchers(xml_text):
         except ValueError:
             voucher_date = datetime.date.today().isoformat()
         party_name = _txt(v, "PARTYLEDGERNAME")
+        party_gstin = _txt(v, "PARTYGSTIN")
+        consignee_name = _txt(v, "CONSIGNEEMAILINGNAME")
+        consignee_gstin = _txt(v, "CONSIGNEEGSTIN")
+        place_of_supply = _txt(v, "PLACEOFSUPPLY")
+        state_name = _txt(v, "STATENAME")
+        gst_registration_type = _txt(v, "GSTREGISTRATIONTYPE")
 
         taxable_value = 0.0
         cgst = sgst = igst = 0.0
@@ -173,6 +240,12 @@ def parse_vouchers(xml_text):
             "voucher_number": voucher_number,
             "date": voucher_date,
             "party_name": party_name,
+            "party_gstin": party_gstin,
+            "consignee_name": consignee_name,
+            "consignee_gstin": consignee_gstin,
+            "place_of_supply": place_of_supply,
+            "state_name": state_name,
+            "gst_registration_type": gst_registration_type,
             "taxable_value": round(taxable_value, 2),
             "cgst": round(cgst, 2),
             "sgst": round(sgst, 2),
@@ -196,6 +269,7 @@ def sync_once(from_date, to_date, dry_run=False):
     print(f"[{datetime.datetime.now():%Y-%m-%d %H:%M:%S}] {len(vouchers)} Sales voucher(s) found in Tally.")
 
     for v in vouchers:
+        v["party_address"] = fetch_party_address(v["party_name"])
         print(f"  {v['voucher_number']} | {v['party_name']} | items={[i['name'] for i in v['items']]} "
               f"| taxable={v['taxable_value']} cgst={v['cgst']} sgst={v['sgst']} igst={v['igst']} total={v['total_value']}")
         if dry_run:
