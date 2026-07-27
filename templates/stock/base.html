@@ -397,7 +397,33 @@
 {% endif %}
 
 <!-- Mobile Menu Toggle Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleBtn = document.getElementById('mobileMenuToggle');
+    const dropdown = document.getElementById('mobileDropdown');
 
+    if (toggleBtn && dropdown) {
+        toggleBtn.addEventListener('click', function() {
+            dropdown.classList.toggle('open');
+            // Toggle icon
+            const icon = this.querySelector('i');
+            if (dropdown.classList.contains('open')) {
+                icon.className = 'fas fa-times';
+            } else {
+                icon.className = 'fas fa-bars';
+            }
+        });
+
+        // Close dropdown when a link is clicked
+        dropdown.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function() {
+                dropdown.classList.remove('open');
+                toggleBtn.querySelector('i').className = 'fas fa-bars';
+            });
+        });
+    }
+});
+</script>
 
 </body>
 </html>

@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +8,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+<meta name="theme-color" content="#1e293b">
+<link rel="apple-touch-icon" href="{% static 'icon/radhulogo-192.png' %}">
     <style>
         /* Custom scrollbar and glassmorphism */
         ::-webkit-scrollbar { width: 8px; }
@@ -97,15 +103,76 @@
     {% block content %}{% endblock %}
 </main>
 
-<!-- PWA Install Button (Floating) -->
-<!-- <button id="installBtn" style="display:none; position:fixed; bottom:2rem; right:2rem; z-index:1000; padding:14px 20px; background:linear-gradient(135deg, #3b82f6, #8b5cf6); color:white; border:none; border-radius:16px; font-weight:600; box-shadow:0 8px 24px rgba(59,130,246,0.4); backdrop-filter:blur(8px); display:flex; align-items:center; gap:10px;">
-    <i class="fas fa-download"></i> Install App
-</button> -->
+<button id="installBtn"
+style="
+display:none;
+position:fixed;
+bottom:20px;
+right:20px;
+background:#2563eb;
+color:white;
+padding:15px 20px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+z-index:99999;">
 
-<!-- Service Worker Registration -->
+⬇ Install App
+
+</button>
+
+<script src="{% static 'app.js' %}"></script>
+
+<script>
+
+if("serviceWorker" in navigator){
+
+window.addEventListener("load",()=>{
+
+navigator.serviceWorker.register("{% static 'service-worker.js' %}");
+
+});
+
+}
+
+</script>
 
 
 <!-- PWA Installation Handler -->
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("{% static 'service-worker.js' %}")
+        .then(reg => console.log("SW Registered", reg))
+        .catch(err => console.log(err));
+    });
+}
+</script>
 
+<script>
+
+if ("serviceWorker" in navigator) {
+
+window.addEventListener("load",()=>{
+
+navigator.serviceWorker.register("{% static 'service-worker.js' %}")
+
+.then(reg=>{
+
+console.log("Service Worker Registered");
+
+})
+
+.catch(err=>{
+
+console.log(err);
+
+});
+
+});
+
+}
+
+</script>
 </body>
 </html>
