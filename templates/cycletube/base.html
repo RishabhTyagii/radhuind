@@ -6,7 +6,6 @@
     <title>{% block title %}Radhu Industries - Stock{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-    <link rel="manifest" href="/static/manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         /* Custom scrollbar and glassmorphism */
@@ -110,53 +109,7 @@
 </button> -->
 
 <!-- Service Worker Registration -->
-<script>
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/static/service-worker.js')
-        .then(reg => console.log('ServiceWorker registered', reg))
-        .catch(err => console.log('ServiceWorker registration failed:', err));
-    });
-}
-</script>
 
-<!-- PWA Installation Handler -->
-<script>
-let deferredPrompt;
-const installBtn = document.getElementById('installBtn');
-
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    installBtn.style.display = 'flex';
-});
-
-installBtn.addEventListener('click', async () => {
-    if (!deferredPrompt) {
-        if (window.matchMedia('(display-mode: standalone)').matches) {
-            alert("✅ App already installed!");
-        } else {
-            alert("⚠️ PWA installation not supported");
-        }
-        return;
-    }
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log('User choice:', outcome);
-    installBtn.style.display = 'none';
-    deferredPrompt = null;
-});
-
-window.addEventListener('appinstalled', () => {
-    console.log('PWA installed');
-    installBtn.style.display = 'none';
-});
-
-// Hide if already standalone
-if (window.matchMedia('(display-mode: standalone)').matches) {
-    installBtn.style.display = 'none';
-}
-</script>
 
 </body>
 </html>
