@@ -45,11 +45,11 @@ class ProductionEntryForm(forms.Form):
         third_grade = cleaned.get("third_grade") or 0
         lose_tyre = cleaned.get("lose_tyre") or 0
 
-        packing = (all_curing + production_tyre) - (repair + second_grade + third_grade + lose_tyre)
+        packing = (all_curing + repair + production_tyre) - (second_grade + third_grade + lose_tyre)
         if packing < 0:
             raise forms.ValidationError(
                 f"Numbers galat lag rahe hain — Packing negative aa raha hai ({packing}). "
-                f"All Curing + Production Tyre, Repair/2nd/3rd/Lose Tyre se kam nahi ho sakta."
+                f"All Curing + Repair + Production Tyre, 2nd/3rd/Lose Tyre se kam nahi ho sakta."
             )
         cleaned["packing"] = packing
         return cleaned

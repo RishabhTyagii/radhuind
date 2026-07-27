@@ -102,7 +102,6 @@ def add_tyre(request):
     return render(request, "stock/add_tyre.html", {"form": form})
 
 
-@login_required
 def add_production(request):
     form = ProductionEntryForm(request.POST or None, initial={"date": datetime.date.today()})
     if request.method == "POST" and form.is_valid():
@@ -131,6 +130,7 @@ def add_production(request):
         return redirect("add_production")
     recent = DailyEntry.objects.filter(entry_type="production").select_related("tyre_item", "user")[:15]
     return render(request, "stock/add_production.html", {"form": form, "recent": recent})
+
 
 @login_required
 def add_dispatch(request):

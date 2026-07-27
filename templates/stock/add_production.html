@@ -265,7 +265,7 @@
                 Daily Production Entry
             </div>
             <div class="section-subtitle">
-                All Curing + Production Tyre − (Repair + 2nd + 3rd + Lose Tyre) = <b>Packing</b> (added to STOCK) — auto-calculated.
+                All Curing + Repair + Production Tyre − (2nd + 3rd + Lose Tyre) = <b>Packing</b> (added to STOCK) — auto-calculated.
             </div>
 
             <form method="post" class="space-y-4">
@@ -430,7 +430,7 @@ $(document).ready(function() {
             const el = document.getElementById(id);
             v[id] = el ? (parseInt(el.value, 10) || 0) : 0;
         });
-        const packing = (v.id_all_curing + v.id_production_tyre) - (v.id_repair + v.id_second_grade + v.id_third_grade + v.id_lose_tyre);
+        const packing = (v.id_all_curing + v.id_repair + v.id_production_tyre) - (v.id_second_grade + v.id_third_grade + v.id_lose_tyre);
         preview.textContent = packing;
         preview.className = "value " + (packing < 0 ? "negative" : "");
     }
