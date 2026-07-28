@@ -48,16 +48,31 @@ def dashboard(request):
     
     for item in items:
         item.month_curing = DailyEntry.objects.filter(
-            tyre_item=item, entry_type="production",
-            date__gte=month_start, date__lte=today
-        ).aggregate(t=Sum("quantity"))["t"] or 0
+            tyre_item=item,
+            entry_type="production",
+            date__gte=month_start,
+            date__lte=today
+        ).aggregate(
+            t=Sum("all_curing")
+        )["t"] or 0
+
         item.month_despatch = DailyEntry.objects.filter(
-            tyre_item=item, entry_type="dispatch",
-            date__gte=month_start, date__lte=today
-        ).aggregate(t=Sum("quantity"))["t"] or 0
+            tyre_item=item,
+            entry_type="dispatch",
+            date__gte=month_start,
+            date__lte=today
+        ).aggregate(
+            t=Sum("quantity")
+        )["t"] or 0
 
    
-    month_production = DailyEntry.objects.filter(entry_type="production", date__gte=month_start, date__lte=today).aggregate(t=Sum("quantity"))["t"] or 0
+    month_production = DailyEntry.objects.filter(
+        entry_type="production",
+        date__gte=month_start,
+        date__lte=today
+    ).aggregate(
+        t=Sum("all_curing")
+    )["t"] or 0
     month_dispatch = DailyEntry.objects.filter(entry_type="dispatch", date__gte=month_start, date__lte=today).aggregate(t=Sum("quantity"))["t"] or 0
 
     grand_total = sum(item.total_stock for item in items)

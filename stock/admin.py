@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import TyreItem, DailyEntry
+from .models import TyreItem, DailyEntry 
 
 
 @admin.register(TyreItem)
@@ -14,3 +14,4 @@ class DailyEntryAdmin(admin.ModelAdmin):
     list_display = ("date", "tyre_item", "entry_type", "bucket", "quantity", "user", "remark")
     list_filter = ("entry_type", "bucket", "date")
     search_fields = ("tyre_item__tyre", "remark")
+
