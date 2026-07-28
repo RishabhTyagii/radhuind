@@ -399,6 +399,10 @@ def add_mapping(request):
 
 @login_required
 def sync_log(request):
+    from stock.models import TyreItem
+    from cycletube.models import CycleTubeItem
+    from cycletyres.models import CycleTyreItem
+
     logs_qs = TallySyncLog.objects.select_related("invoice")
     paginator = Paginator(logs_qs, 30)
     page_obj = paginator.get_page(request.GET.get("page"))
@@ -413,4 +417,43 @@ def sync_log(request):
         "pending": pending_page_obj,
         "pending_page_obj": pending_page_obj,
         "pending_total": pending_qs.count(),
+        "tyre_items": TyreItem.objects.filter(is_active=True),
+        "tube_items": CycleTubeItem.objects.filter(is_active=True),
+        "cycletyre_items": CycleTyreItem.objects.filter(is_active=True),
     })
+
+
+@login_required
+def map_pending_item(request, pk):
+    """Inline 'map & sync' dropdown+button sitting right next to a pending
+    row: creates the mapping for this item name AND immediately tries to
+    resolve it (plus any other pending items sharing that same name)."""
+    pending = get_object_or_404(TallyPendingItem, pk=pk)
+
+    if request.method != "POST":
+        return redirect("tally_sync_log")
+
+    item_choice = request.POST.get("item_choice", "")
+    if ":" not in item_choice:
+        messages.error(request, "Pehle dropdown se ek item select karo.")
+        return redirect("tally_sync_log")
+
+    module, item_id = item_choice.split(":", 1)
+    TallyItemMapping.objects.update_or_create(
+        tally_item_name=pending.tally_item_name,
+        defaults={"module": module, "item_id": int(item_id)},
+    )
+
+    resolved = retry_pending_items(tally_item_name=pending.tally_item_name)
+    if resolved:
+        messages.success(
+            request,
+            f"'{pending.tally_item_name}' map ho gaya — {resolved} pending item turant resolve ho gaya, stock update ho gaya!"
+        )
+    else:
+        messages.warning(
+            request,
+            f"'{pending.tally_item_name}' map to ho gaya, lekin stock abhi bhi kam hai — production badhne pe automatic resolve ho jayega."
+        )
+
+    return redirect("tally_sync_log")

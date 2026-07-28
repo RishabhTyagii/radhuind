@@ -10,4 +10,7 @@ urlpatterns = [
     path("mapping/add/", views.add_mapping, name="tally_add_mapping"),
     path("logs/", views.sync_log, name="tally_sync_log"),
     path("retry-pending/", views.retry_pending_now, name="tally_retry_pending"),
+    path("pending/<int:pk>/retry/", views.retry_single_pending, name="tally_retry_single_pending"),
+    path("pending/<int:pk>/map/", views.map_pending_item, name="tally_map_pending_item"),
+
 ]
