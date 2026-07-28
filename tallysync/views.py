@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
 from django.core.paginator import Paginator
-from django.db.models import Sum
+from django.db.models import Sum , Q 
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
@@ -301,7 +301,11 @@ def sales_summary(request):
         month_value = f"{year:04d}-{month:02d}"
 
     if party_query:
-        invoices = invoices.filter(party_name__icontains=party_query)
+        invoices = invoices.filter(
+            Q(party_name__icontains=party_query) |
+            Q(voucher_number__icontains=party_query) |
+            Q(party_gstin__icontains=party_query)
+        )
 
     total_sale = invoices.aggregate(t=Sum("total_value"))["t"] or 0
     total_taxable = invoices.aggregate(t=Sum("taxable_value"))["t"] or 0
