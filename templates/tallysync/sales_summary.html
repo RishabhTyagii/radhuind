@@ -449,9 +449,43 @@
         </tfoot>
         {% endif %}
       </table>
+      {% if page_obj.has_other_pages %}
+<div class="flex justify-center items-center gap-2 mt-6 flex-wrap">
+
+    {% if page_obj.has_previous %}
+        <a class="btn-reset"
+           href="?page=1&party={{ party_query }}&month={{ month_value }}&from_date={{ from_date }}&to_date={{ to_date }}">
+            First
+        </a>
+
+        <a class="btn-reset"
+           href="?page={{ page_obj.previous_page_number }}&party={{ party_query }}&month={{ month_value }}&from_date={{ from_date }}&to_date={{ to_date }}">
+            ← Prev
+        </a>
+    {% endif %}
+
+    <span class="px-4 py-2 rounded bg-slate-800 text-white">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    </span>
+
+    {% if page_obj.has_next %}
+        <a class="btn-reset"
+           href="?page={{ page_obj.next_page_number }}&party={{ party_query }}&month={{ month_value }}&from_date={{ from_date }}&to_date={{ to_date }}">
+            Next →
+        </a>
+
+        <a class="btn-reset"
+           href="?page={{ page_obj.paginator.num_pages }}&party={{ party_query }}&month={{ month_value }}&from_date={{ from_date }}&to_date={{ to_date }}">
+            Last
+        </a>
+    {% endif %}
+
+</div>
+{% endif %}
     </div>
   </div>
 </div>
+
 
 <!-- ========== ACTIVE SEARCH (real-time filter) ========== -->
 <script>
