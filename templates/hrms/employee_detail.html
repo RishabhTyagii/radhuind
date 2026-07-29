@@ -1,0 +1,285 @@
+{% extends 'hrms/base.html' %}
+
+{% block title %}{{ employee.name }} - Details{% endblock %}
+{% block page_title %}Employee Detail: {{ employee.name }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Top Action Bar & Month Selector -->
+    <div class="bg-white rounded-xl shadow p-5 flex flex-wrap justify-between items-center gap-4">
+        <div class="flex items-center gap-4">
+            {% if employee.photo %}
+                <img src="{{ employee.photo.url }}" class="w-24 h-24 rounded-xl object-cover border-2 border-slate-300 shadow-md">
+            {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ employee.name|urlencode }}&background=1e293b&color=fff&size=128" class="w-24 h-24 rounded-xl object-cover shadow-md">
+            {% endif %}
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">{{ employee.name }} <span class="text-sm font-semibold px-2 py-1 rounded bg-slate-200 text-slate-700">{{ employee.employee_code }}</span></h1>
+                <p class="text-slate-500 text-sm">
+                    <i class="fa-solid fa-building mr-1"></i> {{ employee.department|default:"No Department" }} |
+                    <i class="fa-solid fa-briefcase mr-1"></i> {{ employee.designation|default:"N/A" }} |
+                    <i class="fa-solid fa-phone mr-1"></i> {{ employee.mobile }}
+                </p>
+                <div class="mt-1 flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold {% if employee.employee_type == 'Company' %}bg-blue-100 text-blue-800{% else %}bg-purple-100 text-purple-800{% endif %}">
+                        {{ employee.employee_type }} {% if employee.contractor_name %}({{ employee.contractor_name }}){% endif %}
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold {% if employee.status == 'Active' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ employee.status }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <form method="get" class="flex items-center gap-2">
+                <label class="text-sm font-medium text-slate-700">Month:</label>
+                <input type="month" name="month" value="{{ month_str }}" class="border rounded px-3 py-1.5 text-sm bg-slate-50 border-slate-300" onchange="this.form.submit()">
+            </form>
+            <a href="{% url 'employee_edit' employee.id %}" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded text-sm font-medium">
+                <i class="fa-solid fa-pen mr-1"></i> Edit Profile
+            </a>
+            <a href="{% url 'employee_list' %}" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded text-sm font-medium">
+                <i class="fa-solid fa-arrow-left mr-1"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats & Balances Overview Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        <!-- Leave Balance -->
+        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-emerald-500">
+            <div class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Leave Balance ({{ year }})</div>
+            <div class="flex justify-between items-center">
+                <div>
+                    <span class="text-2xl font-bold text-slate-800">{{ leave_balance.cl_balance|default:7 }}</span>
+                    <span class="text-xs text-slate-500">/ 7 CL remaining</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-2xl font-bold text-slate-800">{{ leave_balance.el_balance|default:13 }}</span>
+                    <span class="text-xs text-slate-500">/ 13 EL remaining</span>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-slate-500 flex justify-between border-t pt-2">
+                <span>Used CL: <strong>{{ cl_used }}</strong></span>
+                <span>Used EL: <strong>{{ el_used }}</strong></span>
+                <span class="text-red-600">LOP: <strong>{{ lop_days }}</strong></span>
+            </div>
+        </div>
+
+        <!-- Attendance Stats -->
+        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-blue-500">
+            <div class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Attendance ({{ month_name }})</div>
+            <div class="flex justify-between items-center">
+                <div>
+                    <span class="text-2xl font-bold text-slate-800">{{ present_days }}</span>
+                    <span class="text-xs text-slate-500">Days Present</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-2xl font-bold text-red-600">{{ absent_days }}</span>
+                    <span class="text-xs text-slate-500">Days Absent</span>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-slate-500 flex justify-between border-t pt-2">
+                <span>Work Hrs: <strong>{{ total_work_hrs }}h</strong></span>
+                <span>OT Hrs: <strong>{{ total_ot_hrs }}h</strong></span>
+            </div>
+        </div>
+
+        <!-- Production Stats -->
+        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-purple-500">
+            <div class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Production ({{ month_name }})</div>
+            <div class="flex justify-between items-center">
+                <div>
+                    <span class="text-2xl font-bold text-slate-800">{{ total_prod_qty }}</span>
+                    <span class="text-xs text-slate-500">Total Pcs</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-2xl font-bold text-purple-700">₹{{ total_prod_amount }}</span>
+                    <span class="text-xs text-slate-500">Total Value</span>
+                </div>
+            </div>
+            <div class="mt-2 text-xs text-slate-500 border-t pt-2">
+                Daily Rate / Piece System Tracked
+            </div>
+        </div>
+
+        <!-- Pay Details -->
+        <div class="bg-white rounded-xl shadow p-4 border-l-4 border-indigo-500">
+            <div class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Rates & Salary</div>
+            <div class="text-sm font-medium text-slate-700">Basic: <strong>₹{{ employee.basic_salary }}</strong>/mo</div>
+            <div class="text-xs text-slate-500 mt-1">Hourly: ₹{{ employee.hourly_rate }} | OT: ₹{{ employee.overtime_rate }}/hr</div>
+            <div class="mt-2 border-t pt-2 flex justify-between items-center">
+                {% if salary %}
+                    <a href="{% url 'salary_slip' salary.id %}" class="text-xs text-blue-600 hover:underline font-semibold">
+                        <i class="fa-solid fa-file-invoice-dollar mr-1"></i> Net Pay: ₹{{ salary.net_salary }}
+                    </a>
+                {% else %}
+                    <a href="{% url 'generate_salary' %}" class="text-xs text-emerald-600 hover:underline font-semibold">
+                        <i class="fa-solid fa-calculator mr-1"></i> Generate Salary
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Two-Column Section: Left (Attendance Log), Right (Production Log) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Attendance Breakdown -->
+        <div class="bg-white rounded-xl shadow p-5">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-slate-800">
+                    <i class="fa-solid fa-calendar-days text-blue-600 mr-2"></i> Daily Attendance Details
+                </h3>
+                <a href="{% url 'attendance_add' %}" class="text-xs bg-blue-50 text-blue-600 hover:bg-blue-100 font-semibold px-3 py-1.5 rounded">
+                    + Mark Attendance
+                </a>
+            </div>
+            <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                <table class="w-full text-sm text-left border-collapse">
+                    <thead class="bg-slate-100 text-slate-700 sticky top-0">
+                        <tr>
+                            <th class="p-2 border">Date</th>
+                            <th class="p-2 border">Status</th>
+                            <th class="p-2 border">In / Out</th>
+                            <th class="p-2 border">Work/OT</th>
+                            <th class="p-2 border">Leave Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for att in attendance_qs %}
+                        <tr class="hover:bg-slate-50 border-b">
+                            <td class="p-2 border font-medium">{{ att.date|date:"d M (D)" }}</td>
+                            <td class="p-2 border">
+                                {% if att.status == 'Present' %}
+                                    <span class="px-2 py-0.5 rounded text-xs bg-green-100 text-green-800 font-medium">Present</span>
+                                {% elif att.status == 'Absent' %}
+                                    <span class="px-2 py-0.5 rounded text-xs bg-red-100 text-red-800 font-medium">Absent</span>
+                                {% elif att.status == 'Half Day' %}
+                                    <span class="px-2 py-0.5 rounded text-xs bg-amber-100 text-amber-800 font-medium">Half Day</span>
+                                {% else %}
+                                    <span class="px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-800 font-medium">{{ att.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-2 border text-xs">
+                                {% if att.in_time %}{{ att.in_time|time:"H:i" }} - {{ att.out_time|time:"H:i" }}{% else %}-{% endif %}
+                            </td>
+                            <td class="p-2 border text-xs">
+                                {{ att.working_hours }}h {% if att.overtime_hours > 0 %}<span class="text-indigo-600 font-semibold">(+{{ att.overtime_hours }}h OT)</span>{% endif %}
+                            </td>
+                            <td class="p-2 border text-xs">
+                                {% if att.leave_type %}
+                                    <span class="font-bold {% if att.leave_type == 'LOP' %}text-red-600{% else %}text-amber-600{% endif %}">{{ att.leave_type }}</span>
+                                {% else %}-{% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="p-4 text-center text-slate-400">No attendance recorded for this month.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Production Breakdown -->
+        <div class="bg-white rounded-xl shadow p-5">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-slate-800">
+                    <i class="fa-solid fa-industry text-purple-600 mr-2"></i> Daily Production Details
+                </h3>
+                <a href="{% url 'production_add' %}" class="text-xs bg-purple-50 text-purple-600 hover:bg-purple-100 font-semibold px-3 py-1.5 rounded">
+                    + Add Production
+                </a>
+            </div>
+            <div class="overflow-x-auto max-h-96 overflow-y-auto">
+                <table class="w-full text-sm text-left border-collapse">
+                    <thead class="bg-slate-100 text-slate-700 sticky top-0">
+                        <tr>
+                            <th class="p-2 border">Date</th>
+                            <th class="p-2 border">Product</th>
+                            <th class="p-2 border">Qty</th>
+                            <th class="p-2 border">Rate</th>
+                            <th class="p-2 border">Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prod in production_qs %}
+                        <tr class="hover:bg-slate-50 border-b">
+                            <td class="p-2 border font-medium">{{ prod.date|date:"d M" }}</td>
+                            <td class="p-2 border font-semibold text-slate-700">{{ prod.product_name }}</td>
+                            <td class="p-2 border">{{ prod.quantity }}</td>
+                            <td class="p-2 border text-xs">₹{{ prod.rate }}</td>
+                            <td class="p-2 border font-bold text-purple-700">₹{{ prod.total_amount }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="p-4 text-center text-slate-400">No production entries for this month.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Salary Adjustments & Additional Details -->
+    <div class="bg-white rounded-xl shadow p-5">
+        <h3 class="text-lg font-bold text-slate-800 mb-4">
+            <i class="fa-solid fa-wallet text-indigo-600 mr-2"></i> Advances, Bonuses & Deductions ({{ month_name }} {{ year }})
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Advances -->
+            <div class="border rounded-lg p-3 bg-amber-50/50">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-bold text-amber-800 text-sm">Advances Taken</span>
+                    <span class="font-bold text-amber-900">Total: ₹{{ total_advance }}</span>
+                </div>
+                {% for a in advances %}
+                    <div class="text-xs text-slate-600 border-b py-1 flex justify-between">
+                        <span>{{ a.date|date:"d M" }}: {{ a.remarks|default:"Advance" }}</span>
+                        <span class="font-semibold text-slate-800">₹{{ a.amount }}</span>
+                    </div>
+                {% empty %}
+                    <div class="text-xs text-slate-400 italic py-1">No advance records</div>
+                {% endfor %}
+            </div>
+
+            <!-- Bonus -->
+            <div class="border rounded-lg p-3 bg-emerald-50/50">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-bold text-emerald-800 text-sm">Bonuses Issued</span>
+                    <span class="font-bold text-emerald-900">Total: ₹{{ total_bonus }}</span>
+                </div>
+                {% for b in bonuses %}
+                    <div class="text-xs text-slate-600 border-b py-1 flex justify-between">
+                        <span>{{ b.date|date:"d M" }}: {{ b.remarks|default:"Bonus" }}</span>
+                        <span class="font-semibold text-slate-800">₹{{ b.amount }}</span>
+                    </div>
+                {% empty %}
+                    <div class="text-xs text-slate-400 italic py-1">No bonus records</div>
+                {% endfor %}
+            </div>
+
+            <!-- Deduction -->
+            <div class="border rounded-lg p-3 bg-rose-50/50">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-bold text-rose-800 text-sm">Deductions</span>
+                    <span class="font-bold text-rose-900">Total: ₹{{ total_deduction }}</span>
+                </div>
+                {% for d in deductions %}
+                    <div class="text-xs text-slate-600 border-b py-1 flex justify-between">
+                        <span>{{ d.date|date:"d M" }}: {{ d.remarks|default:"Deduction" }}</span>
+                        <span class="font-semibold text-slate-800">₹{{ d.amount }}</span>
+                    </div>
+                {% empty %}
+                    <div class="text-xs text-slate-400 italic py-1">No deduction records</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

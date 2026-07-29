@@ -1,148 +1,98 @@
-{% extends "hrms/base.html" %}
+{% extends 'hrms/base.html' %}
 
-{% block title %}Production{% endblock %}
-{% block page_title %}Production Register{% endblock %}
+{% block title %}Production Register{% endblock %}
+{% block page_title %}Piece-Rate & Daily Production Register{% endblock %}
 
 {% block content %}
+<div class="bg-white rounded-xl shadow-lg p-6 space-y-6">
 
-<div class="bg-white rounded-xl shadow p-6">
+    <!-- Filters Header -->
+    <div class="flex flex-wrap justify-between items-center gap-4 pb-4 border-b border-slate-200">
+        <form method="get" class="flex flex-wrap items-center gap-3">
+            <input type="text" name="search" value="{{ search }}" placeholder="Employee or Product..." class="border rounded-lg px-4 py-2 text-sm bg-slate-50 border-slate-300 w-56">
 
-<div class="flex justify-between mb-5">
+            <input type="date" name="date" value="{{ date_filter }}" class="border rounded-lg px-3 py-2 text-sm bg-slate-50 border-slate-300">
 
-<form method="get">
+            <input type="month" name="month" value="{{ month_str }}" class="border rounded-lg px-3 py-2 text-sm bg-slate-50 border-slate-300">
 
-<input
-type="text"
-name="search"
-placeholder="Employee"
-value="{{ search }}"
-class="border rounded px-4 py-2">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium shadow">
+                <i class="fa-solid fa-magnifying-glass mr-1"></i> Filter
+            </button>
+            <a href="{% url 'production_list' %}" class="text-xs text-slate-500 hover:underline">Reset</a>
+        </form>
 
-<button class="bg-blue-600 text-white px-5 py-2 rounded">
+        <a href="{% url 'production_add' %}" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i> Add Production Entry
+        </a>
+    </div>
 
-Search
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 flex justify-between items-center">
+            <div>
+                <span class="text-xs font-semibold uppercase text-purple-600 tracking-wider">Total Quantity Produced</span>
+                <div class="text-3xl font-extrabold text-purple-900 mt-1">{{ total_qty }}</div>
+            </div>
+            <i class="fa-solid fa-boxes-stacked text-3xl text-purple-300"></i>
+        </div>
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex justify-between items-center">
+            <div>
+                <span class="text-xs font-semibold uppercase text-emerald-600 tracking-wider">Total Production Value</span>
+                <div class="text-3xl font-extrabold text-emerald-900 mt-1">₹ {{ total_amount }}</div>
+            </div>
+            <i class="fa-solid fa-indian-rupee-sign text-3xl text-emerald-300"></i>
+        </div>
+    </div>
 
-</button>
-
-</form>
-
-<a href="{% url 'production_add' %}"
-class="bg-green-600 text-white px-5 py-2 rounded">
-
-+ Production
-
-</a>
+    <!-- Production Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm border-collapse">
+            <thead class="bg-slate-100 text-slate-700 uppercase text-xs font-bold tracking-wider">
+                <tr>
+                    <th class="p-3 border-b">Date</th>
+                    <th class="p-3 border-b">Employee</th>
+                    <th class="p-3 border-b">Department</th>
+                    <th class="p-3 border-b">Product Produced</th>
+                    <th class="p-3 border-b">Quantity</th>
+                    <th class="p-3 border-b">Rate (₹)</th>
+                    <th class="p-3 border-b">Total Value (₹)</th>
+                    <th class="p-3 border-b text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in production %}
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="p-3 font-semibold text-slate-700">{{ row.date|date:"d M Y (D)" }}</td>
+                    <td class="p-3">
+                        <a href="{% url 'employee_detail' row.employee.id %}" class="font-bold text-slate-800 hover:text-blue-600">
+                            {{ row.employee.name }}
+                        </a>
+                        <div class="text-xs text-slate-400">{{ row.employee.employee_code }}</div>
+                    </td>
+                    <td class="p-3 text-slate-600">{{ row.employee.department|default:"-" }}</td>
+                    <td class="p-3 font-bold text-purple-800">{{ row.product_name }}</td>
+                    <td class="p-3 font-semibold text-slate-800">{{ row.quantity }}</td>
+                    <td class="p-3 text-xs text-slate-600">₹{{ row.rate }}</td>
+                    <td class="p-3 font-bold text-emerald-700">₹{{ row.total_amount }}</td>
+                    <td class="p-3 text-center">
+                        <div class="flex justify-center items-center gap-2">
+                            <a href="{% url 'production_edit' row.id %}" class="p-1.5 text-amber-600 hover:bg-amber-50 rounded" title="Edit">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+                            <a href="{% url 'production_delete' row.id %}" class="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Delete" onclick="return confirm('Delete production entry?');">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="p-6 text-center text-slate-400">No production records found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
 </div>
-
-<div class="grid md:grid-cols-2 gap-5 mb-5">
-
-<div class="bg-blue-100 rounded p-5">
-
-<h3>Total Qty</h3>
-
-<h1 class="text-3xl font-bold">
-
-{{ total_qty }}
-
-</h1>
-
-</div>
-
-<div class="bg-green-100 rounded p-5">
-
-<h3>Total Amount</h3>
-
-<h1 class="text-3xl font-bold">
-
-₹ {{ total_amount }}
-
-</h1>
-
-</div>
-
-</div>
-
-<table class="w-full">
-
-<thead class="bg-gray-100">
-
-<tr>
-
-<th>Date</th>
-
-<th>Employee</th>
-
-<th>Product</th>
-
-<th>Qty</th>
-
-<th>Rate</th>
-
-<th>Total</th>
-
-<th>Action</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for row in production %}
-
-<tr class="border-b">
-
-<td>{{ row.date }}</td>
-
-<td>{{ row.employee }}</td>
-
-<td>{{ row.product_name }}</td>
-
-<td>{{ row.quantity }}</td>
-
-<td>{{ row.rate }}</td>
-
-<td>{{ row.total_amount }}</td>
-
-<td>
-
-<a href="{% url 'production_edit' row.id %}">
-
-Edit
-
-</a>
-
-|
-
-<a href="{% url 'production_delete' row.id %}">
-
-Delete
-
-</a>
-
-</td>
-
-</tr>
-
-{% empty %}
-
-<tr>
-
-<td colspan="7" class="text-center p-5">
-
-No Production
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
-</div>
-
 {% endblock %}

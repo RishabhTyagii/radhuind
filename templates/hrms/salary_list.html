@@ -1,107 +1,80 @@
-{% extends "hrms/base.html" %}
+{% extends 'hrms/base.html' %}
 
-{% block title %}Salary{% endblock %}
-{% block page_title %}Salary Register{% endblock %}
+{% block title %}Salary Register{% endblock %}
+{% block page_title %}Payroll & Salary Register{% endblock %}
 
 {% block content %}
+<div class="bg-white rounded-xl shadow-lg p-6 space-y-6">
 
-<div class="bg-white rounded-xl shadow p-6">
+    <!-- Filters Header -->
+    <div class="flex flex-wrap justify-between items-center gap-4 pb-4 border-b border-slate-200">
+        <form method="get" class="flex flex-wrap items-center gap-3">
+            <input type="text" name="search" value="{{ search }}" placeholder="Search Employee..." class="border rounded-lg px-4 py-2 text-sm bg-slate-50 border-slate-300 w-56">
 
-<div class="flex justify-end mb-5">
+            <input type="month" name="month" value="{{ month_str }}" class="border rounded-lg px-3 py-2 text-sm bg-slate-50 border-slate-300">
 
-<a href="{% url 'generate_salary' %}"
-class="bg-green-600 text-white px-5 py-2 rounded">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium shadow">
+                <i class="fa-solid fa-magnifying-glass mr-1"></i> Filter
+            </button>
+            <a href="{% url 'salary_list' %}" class="text-xs text-slate-500 hover:underline">Reset</a>
+        </form>
 
-Generate Salary
+        <a href="{% url 'generate_salary' %}" class="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow flex items-center gap-2">
+            <i class="fa-solid fa-calculator"></i> Generate Salary
+        </a>
+    </div>
 
-</a>
-
-</div>
-
-<table class="w-full">
-
-<thead class="bg-gray-100">
-
-<tr>
-
-<th>Employee</th>
-
-<th>Month</th>
-
-<th>Year</th>
-
-<th>Basic</th>
-
-<th>Production</th>
-
-<th>OT</th>
-
-<th>Net Salary</th>
-
-<th></th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for s in salaries %}
-
-<tr class="border-b">
-
-<td>{{ s.employee }}</td>
-
-<td>{{ s.month }}</td>
-
-<td>{{ s.year }}</td>
-
-<td>{{ s.basic_salary }}</td>
-
-<td>{{ s.production_amount }}</td>
-
-<td>{{ s.overtime_amount }}</td>
-
-<td>
-
-<b>
-
-₹ {{ s.net_salary }}
-
-</b>
-
-</td>
-
-<td>
-
-<a href="{% url 'salary_slip' s.id %}">
-
-Slip
-
-</a>
-
-</td>
-
-</tr>
-
-{% empty %}
-
-<tr>
-
-<td colspan="8" class="text-center p-5">
-
-No Salary Generated
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
+    <!-- Salary Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm border-collapse">
+            <thead class="bg-slate-100 text-slate-700 uppercase text-xs font-bold tracking-wider">
+                <tr>
+                    <th class="p-3 border-b">Employee</th>
+                    <th class="p-3 border-b">Period</th>
+                    <th class="p-3 border-b">Basic Payable</th>
+                    <th class="p-3 border-b">OT Amount</th>
+                    <th class="p-3 border-b">Production</th>
+                    <th class="p-3 border-b">Bonus / Deduct</th>
+                    <th class="p-3 border-b">PF / ESI</th>
+                    <th class="p-3 border-b">Net Salary (₹)</th>
+                    <th class="p-3 border-b text-center">Payslip</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in salaries %}
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="p-3">
+                        <a href="{% url 'employee_detail' s.employee.id %}" class="font-bold text-slate-800 hover:text-blue-600">
+                            {{ s.employee.name }}
+                        </a>
+                        <div class="text-xs text-slate-400">{{ s.employee.employee_code }} | {{ s.employee.department|default:"-" }}</div>
+                    </td>
+                    <td class="p-3 font-semibold text-slate-700">{{ s.month }}/{{ s.year }}</td>
+                    <td class="p-3 text-slate-700">₹{{ s.basic_salary }}</td>
+                    <td class="p-3 text-indigo-700 font-medium">₹{{ s.overtime_amount }}</td>
+                    <td class="p-3 text-purple-700 font-medium">₹{{ s.production_amount }}</td>
+                    <td class="p-3 text-xs">
+                        <div class="text-emerald-700">+₹{{ s.bonus }}</div>
+                        <div class="text-rose-700">-₹{{ s.advance|add:s.deduction }}</div>
+                    </td>
+                    <td class="p-3 text-xs text-slate-500">
+                        PF: ₹{{ s.pf_amount }} | ESI: ₹{{ s.esi_amount }}
+                    </td>
+                    <td class="p-3 font-extrabold text-emerald-700 text-base">₹{{ s.net_salary }}</td>
+                    <td class="p-3 text-center">
+                        <a href="{% url 'salary_slip' s.id %}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded shadow-sm inline-flex items-center gap-1">
+                            <i class="fa-solid fa-file-invoice"></i> Slip
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="p-6 text-center text-slate-400">No salary records generated.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
 </div>
-
 {% endblock %}

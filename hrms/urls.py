@@ -154,6 +154,12 @@ urlpatterns = [
         name="salary_slip",
     ),
 
+    path(
+        "salary/<int:employee_id>/<int:month>/<int:year>/slip/",
+        views.salary_slip_emp,
+        name="salary_slip_emp",
+    ),
+
     # ===================================================
     # Advance
     # ===================================================
@@ -168,6 +174,12 @@ urlpatterns = [
         "advance/add/",
         views.advance_add,
         name="advance_add",
+    ),
+
+    path(
+        "advance/<int:pk>/delete/",
+        views.advance_delete,
+        name="advance_delete",
     ),
 
     # ===================================================
@@ -186,6 +198,12 @@ urlpatterns = [
         name="bonus_add",
     ),
 
+    path(
+        "bonus/<int:pk>/delete/",
+        views.bonus_delete,
+        name="bonus_delete",
+    ),
+
     # ===================================================
     # Deduction
     # ===================================================
@@ -200,6 +218,12 @@ urlpatterns = [
         "deduction/add/",
         views.deduction_add,
         name="deduction_add",
+    ),
+
+    path(
+        "deduction/<int:pk>/delete/",
+        views.deduction_delete,
+        name="deduction_delete",
     ),
 
     # ===================================================

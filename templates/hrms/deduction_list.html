@@ -1,0 +1,57 @@
+{% extends 'hrms/base.html' %}
+
+{% block title %}Deduction Register{% endblock %}
+{% block page_title %}Employee Deductions{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 space-y-6">
+
+    <div class="flex justify-between items-center pb-4 border-b border-slate-200">
+        <h2 class="text-xl font-bold text-slate-800">
+            <i class="fa-solid fa-minus-circle text-orange-600 mr-2"></i> Employee Deductions
+        </h2>
+        <a href="{% url 'deduction_add' %}" class="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i> Add Deduction
+        </a>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm border-collapse">
+            <thead class="bg-slate-100 text-slate-700 uppercase text-xs font-bold tracking-wider">
+                <tr>
+                    <th class="p-3 border-b">Date</th>
+                    <th class="p-3 border-b">Employee</th>
+                    <th class="p-3 border-b">Deduction Amount (₹)</th>
+                    <th class="p-3 border-b">Remarks</th>
+                    <th class="p-3 border-b text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in deductions %}
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="p-3 font-semibold text-slate-700">{{ d.date|date:"d M Y" }}</td>
+                    <td class="p-3">
+                        <a href="{% url 'employee_detail' d.employee.id %}" class="font-bold text-slate-800 hover:text-blue-600">
+                            {{ d.employee.name }}
+                        </a>
+                        <div class="text-xs text-slate-400">{{ d.employee.employee_code }}</div>
+                    </td>
+                    <td class="p-3 font-bold text-rose-700">₹ {{ d.amount }}</td>
+                    <td class="p-3 text-slate-600 text-xs">{{ d.remarks|default:"-" }}</td>
+                    <td class="p-3 text-center">
+                        <a href="{% url 'deduction_delete' d.id %}" onclick="return confirm('Delete this deduction record?');" class="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Delete">
+                            <i class="fa-solid fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="p-6 text-center text-slate-400">No deduction records found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

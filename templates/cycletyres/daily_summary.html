@@ -1,0 +1,885 @@
+{% extends "cycletyres/base.html" %}
+{% load static %}
+
+{% block title %}Cycle Tyre – Daily Production Summary | Radhu Industries{% endblock %}
+
+{% block content %}
+<style>
+  /* ── Full Page Reset ───────────────────────────────────────── */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+  }
+
+  /* ── Main Container ────────────────────────────────────────── */
+  .summary-page {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* Remove any container padding from base template */
+  .container, .container-fluid {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* ── Glassmorphism Card ────────────────────────────────────── */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 0;
+    padding: 1.5rem 2rem;
+    margin: 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    width: 100%;
+  }
+  .glass-card:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+  .glass-card:hover {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    flex-wrap: wrap;
+  }
+  .card-header .icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .card-header h3 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin: 0;
+    flex: 1;
+  }
+  .card-header .badge {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    white-space: nowrap;
+  }
+  .card-header .badge-amber {
+    background: rgba(217, 119, 6, 0.15);
+    color: #fbbf24;
+    border-color: rgba(217, 119, 6, 0.2);
+  }
+
+  /* ── Page Title ────────────────────────────────────────────── */
+  .page-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 0;
+    padding: 1.5rem 2rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    width: 100%;
+  }
+  .page-title h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #f1f5f9;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    letter-spacing: -0.02em;
+    flex-wrap: wrap;
+  }
+  .page-title h1 .highlight {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .page-title .subtitle {
+    color: #64748b;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    font-weight: 400;
+  }
+  .page-title .subtitle i {
+    color: #3b82f6;
+    margin-right: 0.3rem;
+  }
+  .page-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  /* ── Buttons ────────────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.25s ease;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  }
+  .btn:active { transform: translateY(0); }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  }
+  .btn-success {
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  }
+  .btn-amber {
+    background: linear-gradient(135deg, #d97706, #f59e0b);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3);
+  }
+  .btn-purple {
+    background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+  }
+  .btn-outline {
+    background: transparent;
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #e2e8f0;
+  }
+  .btn-sm {
+    padding: 0.4rem 0.9rem;
+    font-size: 0.75rem;
+  }
+
+  /* ── Filter Bar ────────────────────────────────────────────── */
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+    width: 100%;
+  }
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 0 1 auto;
+  }
+  .filter-group label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+  .filter-group input,
+  .filter-group select {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    color: #e2e8f0;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    min-width: 140px;
+    width: 100%;
+  }
+  .filter-group input:focus,
+  .filter-group select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .filter-group input::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
+  }
+  .filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* ── Manual Form ───────────────────────────────────────────── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+    width: 100%;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .form-group label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+  .form-group label .required {
+    color: #ef4444;
+    margin-left: 0.2rem;
+  }
+  .form-group input {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    color: #e2e8f0;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    width: 100%;
+  }
+  .form-group input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+  }
+  .form-group input::placeholder {
+    color: #475569;
+  }
+  .form-group .input-value {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 0.5rem 0.8rem;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  /* ── Table ──────────────────────────────────────────────────── */
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: 0;
+    border: none;
+    width: 100%;
+    margin: 0;
+  }
+  .summary-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.75rem;
+    min-width: 1200px;
+  }
+  .summary-table thead th {
+    padding: 0.7rem 0.8rem;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+  }
+  /* Column Groups */
+  .th-date {
+    background: #1e293b !important;
+    color: #e2e8f0 !important;
+    text-align: left !important;
+  }
+  .th-prod {
+    background: linear-gradient(135deg, #1e3a5f, #1e40af) !important;
+    color: #93c5fd !important;
+  }
+  .th-weight {
+    background: linear-gradient(135deg, #14532d, #065f46) !important;
+    color: #86efac !important;
+  }
+  .th-compound {
+    background: linear-gradient(135deg, #3b0764, #5b21b6) !important;
+    color: #d8b4fe !important;
+  }
+  .th-misc {
+    background: linear-gradient(135deg, #1c1917, #451a03) !important;
+    color: #fcd34d !important;
+  }
+
+  .summary-table tbody td {
+    padding: 0.6rem 0.8rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    color: #e2e8f0;
+    text-align: center;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+  .summary-table tbody tr {
+    transition: all 0.2s ease;
+  }
+  .summary-table tbody tr:hover td {
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .summary-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .td-date {
+    text-align: left !important;
+    font-weight: 600;
+    color: #60a5fa !important;
+  }
+  .td-date .date-badge {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 6px;
+    background: rgba(96, 165, 250, 0.1);
+    border: 1px solid rgba(96, 165, 250, 0.15);
+    font-size: 0.75rem;
+  }
+
+  /* Value colours */
+  .positive { color: #4ade80; font-weight: 600; }
+  .negative { color: #f87171; font-weight: 600; }
+  .neutral  { color: #94a3b8; }
+  .highlight-value { color: #fcd34d; font-weight: 600; }
+
+  /* Totals row */
+  .totals-row td {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-top: 2px solid rgba(255, 255, 255, 0.12) !important;
+    font-weight: 700 !important;
+    color: #fde68a !important;
+    padding: 0.7rem 0.8rem !important;
+  }
+  .totals-row td:first-child {
+    text-align: left !important;
+    color: #fbbf24 !important;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+  .totals-row:hover td {
+    background: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  /* ── Latest Entry Highlight ────────────────────────────────── */
+  .latest-entry td {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(139, 92, 246, 0.02)) !important;
+    border-left: 3px solid #8b5cf6;
+  }
+  .latest-entry:hover td {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(139, 92, 246, 0.04)) !important;
+  }
+  .latest-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+    color: white;
+    font-size: 0.55rem;
+    font-weight: 700;
+    padding: 0.15rem 0.6rem;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+    margin-right: 0.4rem;
+  }
+  .latest-badge i {
+    font-size: 0.5rem;
+  }
+
+  /* ── Legend ────────────────────────────────────────────────── */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.65rem;
+    color: #94a3b8;
+  }
+  .legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .legend-color.prod { background: linear-gradient(135deg, #1e3a5f, #1e40af); }
+  .legend-color.weight { background: linear-gradient(135deg, #14532d, #065f46); }
+  .legend-color.compound { background: linear-gradient(135deg, #3b0764, #5b21b6); }
+  .legend-color.misc { background: linear-gradient(135deg, #1c1917, #451a03); }
+  .legend-color.latest { background: linear-gradient(135deg, #7c3aed, #8b5cf6); }
+
+  /* ── Empty State ───────────────────────────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: #64748b;
+    width: 100%;
+  }
+  .empty-state .icon-large {
+    font-size: 3rem;
+    color: #334155;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+  .empty-state h4 {
+    color: #94a3b8;
+    font-size: 1rem;
+    margin: 0 0 0.4rem 0;
+  }
+  .empty-state p {
+    font-size: 0.8rem;
+    margin: 0;
+  }
+
+  /* ── Alerts ────────────────────────────────────────────────── */
+  .alert {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    width: 100%;
+    margin: 0;
+  }
+  .alert-success {
+    background: rgba(16, 185, 129, 0.08);
+    color: #6ee7b7;
+  }
+  .alert-error {
+    background: rgba(239, 68, 68, 0.08);
+    color: #fca5a5;
+  }
+  .alert i { font-size: 1rem; }
+
+  /* ── Responsive ────────────────────────────────────────────── */
+  @media (max-width: 1200px) {
+    .summary-table { min-width: 1000px; }
+    .form-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  }
+
+  @media (max-width: 992px) {
+    .page-title { padding: 1rem 1.5rem; }
+    .glass-card { padding: 1.25rem 1.5rem; }
+    .page-title h1 { font-size: 1.3rem; }
+    .filter-bar { flex-direction: column; align-items: stretch; }
+    .filter-group { flex: 1; }
+    .filter-group input { min-width: auto; }
+    .filter-actions { flex-wrap: wrap; }
+    .filter-actions .btn { flex: 1; justify-content: center; }
+    .form-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+  }
+
+  @media (max-width: 768px) {
+    .page-title { padding: 0.75rem 1rem; flex-direction: column; align-items: flex-start; }
+    .page-actions { width: 100%; }
+    .page-actions .btn { flex: 1; justify-content: center; }
+    .glass-card { padding: 1rem; }
+    .card-header { flex-wrap: wrap; }
+    .card-header h3 { font-size: 0.75rem; }
+    .form-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .summary-table { font-size: 0.65rem; min-width: 800px; }
+    .summary-table thead th { padding: 0.5rem 0.4rem; font-size: 0.5rem; }
+    .summary-table tbody td { padding: 0.4rem 0.4rem; }
+    .legend { gap: 0.75rem; }
+    .legend-item { font-size: 0.55rem; }
+    .page-title h1 { font-size: 1.2rem; }
+  }
+
+  @media (max-width: 480px) {
+    .page-title { padding: 0.5rem 0.75rem; }
+    .glass-card { padding: 0.75rem; }
+    .page-title h1 { font-size: 1rem; }
+    .page-title .subtitle { font-size: 0.65rem; }
+    .form-grid { grid-template-columns: 1fr; gap: 0.5rem; }
+    .filter-group input { font-size: 0.8rem; padding: 0.4rem 0.7rem; }
+    .btn { font-size: 0.7rem; padding: 0.4rem 0.8rem; }
+    .summary-table { font-size: 0.55rem; min-width: 650px; }
+    .summary-table thead th { padding: 0.3rem 0.25rem; font-size: 0.45rem; }
+    .summary-table tbody td { padding: 0.3rem 0.25rem; }
+    .latest-badge { font-size: 0.45rem; padding: 0.1rem 0.4rem; }
+    .card-header .badge { font-size: 0.5rem; padding: 0.15rem 0.5rem; }
+    .card-header h3 { font-size: 0.65rem; }
+    .legend-item { font-size: 0.5rem; }
+  }
+
+  /* ── Scrollbar Styling ────────────────────────────────────── */
+  .table-wrapper::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+  .table-wrapper::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .table-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  .table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  /* ── Remove all margins from base template ────────────────── */
+  .main-content, main, .content, #content, .container, .row {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+</style>
+
+<div class="summary-page">
+
+  <!-- ── Page Header ────────────────────────────────────────── -->
+  <div class="page-title">
+    <div>
+      <h1>
+        <i class="fas fa-chart-line" style="color:#10b981;"></i>
+        <span class="highlight">Cycle Tyre</span> Production Summary
+      </h1>
+      <div class="subtitle">
+        <i class="fas fa-calculator"></i>
+        Auto-calculated + Manual Entries &bull; Formula: Theoretical KG × 82.5% = Theoretical Compound
+      </div>
+    </div>
+    <div class="page-actions">
+      <a href="?from_date={{ from_date }}&to_date={{ to_date }}&export=excel" class="btn btn-success btn-sm">
+        <i class="fas fa-file-excel"></i> Export Excel
+      </a>
+      <button class="btn btn-outline btn-sm" onclick="window.print()">
+        <i class="fas fa-print"></i> Print
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Messages ────────────────────────────────────────────── -->
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags|default:'success' }}">
+      <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
+      {{ message }}
+    </div>
+  {% endfor %}
+
+  <!-- ── Filter Card ─────────────────────────────────────────── -->
+  <div class="glass-card">
+    <div class="card-header">
+      <div class="icon"><i class="fas fa-calendar-alt"></i></div>
+      <h3>Date Range Filter</h3>
+      <span class="badge"><i class="far fa-clock"></i> Select period</span>
+    </div>
+    <form method="GET" class="filter-bar">
+      <div class="filter-group">
+        <label><i class="far fa-calendar-alt"></i> From</label>
+        <input type="date" name="from_date" value="{{ from_date }}" id="from_date">
+      </div>
+      <div class="filter-group">
+        <label><i class="far fa-calendar-alt"></i> To</label>
+        <input type="date" name="to_date" value="{{ to_date }}" id="to_date">
+      </div>
+      <div class="filter-actions">
+        <button type="submit" class="btn btn-primary btn-sm">
+          <i class="fas fa-search"></i> Apply Filter
+        </button>
+        <button type="button" class="btn btn-amber btn-sm" onclick="setCurrentMonth()">
+          <i class="fas fa-calendar-check"></i> This Month
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── Manual Entry Card ───────────────────────────────────── -->
+  <div class="glass-card">
+    <div class="card-header">
+      <div class="icon"><i class="fas fa-pen-fancy"></i></div>
+      <h3>Manual Entry</h3>
+      <span class="badge badge-amber"><i class="fas fa-edit"></i> Add / Update</span>
+    </div>
+    <form method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="from_date" value="{{ from_date }}">
+      <input type="hidden" name="to_date" value="{{ to_date }}">
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date <span class="required">*</span></label>
+          {{ manual_form.date }}
+        </div>
+        <div class="form-group">
+          <label>Packing Parch KG</label>
+          {{ manual_form.parchi_kg }}
+        </div>
+        <div class="form-group">
+          <label>Mixing Actual Compound</label>
+          {{ manual_form.mixing_actual_compound }}
+        </div>
+        <div class="form-group">
+          <label>Chakka</label>
+          {{ manual_form.chakka }}
+        </div>
+        <div class="form-group">
+          <label>Calander Bias Cutt.</label>
+          {{ manual_form.calander_bias_cutt }}
+        </div>
+        <div class="form-group">
+          <label>Packing Wastage</label>
+          {{ manual_form.packing_wastage }}
+        </div>
+        <div class="form-group">
+          <label>Tar</label>
+          {{ manual_form.tar }}
+        </div>
+      </div>
+
+      {% if manual_form.errors %}
+        <div class="alert alert-error" style="border-radius: 10px; margin-top: 1rem; border: 1px solid rgba(239, 68, 68, 0.2);">
+          <i class="fas fa-exclamation-triangle"></i>
+          {% for field in manual_form %}
+            {% for error in field.errors %}
+              <div><strong>{{ field.label }}:</strong> {{ error }}</div>
+            {% endfor %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <button type="submit" class="btn btn-primary btn-sm" style="margin-top:1rem;">
+        <i class="fas fa-save"></i> Save Entry
+      </button>
+    </form>
+  </div>
+
+  <!-- ── Summary Table Card ──────────────────────────────────── -->
+  <div class="glass-card" style="padding:0;">
+    <div class="card-header" style="padding: 1rem 2rem; margin: 0;">
+      <div class="icon"><i class="fas fa-table"></i></div>
+      <h3>Daily Summary</h3>
+      <span class="badge">
+        <i class="far fa-calendar"></i> {{ rows|length }} days &bull; {{ from_date }} → {{ to_date }}
+      </span>
+    </div>
+
+    {% if rows %}
+    <div class="table-wrapper">
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th class="th-date">Date</th>
+            <th class="th-prod">Production <br><small>PCS</small></th>
+            <th class="th-prod">Packing <br><small>PCS</small></th>
+            <th class="th-weight">Theoretical <br><small>KG</small></th>
+            <th class="th-weight">Parchi KG <br><small>Manual</small></th>
+            <th class="th-weight">Difference</th>
+            <th class="th-compound">Theoretical <br><small>Compound</small></th>
+            <th class="th-compound">Mixing Actual <br><small>Manual</small></th>
+            <th class="th-compound">Variance</th>
+            <th class="th-misc">Chakka <br><small>Manual</small></th>
+            <th class="th-misc">Calander <br><small>Manual</small></th>
+            <th class="th-misc">Packing <br><small>Wastage</small></th>
+            <th class="th-misc">Tar <br><small>Manual</small></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr {% if forloop.first %}class="latest-entry"{% endif %}>
+            <td class="td-date">
+              {% if forloop.first %}
+                <span class="latest-badge">
+                  <i class="fas fa-bolt"></i> Latest
+                </span>
+                {{ row.date|date:"d-M-Y" }}
+              {% else %}
+                <span class="date-badge">{{ row.date|date:"d-M-Y" }}</span>
+              {% endif %}
+            </td>
+            <td><strong style="color:#93c5fd;">{{ row.production_pcs }}</strong></td>
+            <td>{{ row.packing_pcs }}</td>
+            <td>{{ row.theoretical_kg }}</td>
+            <td>
+              {% if row.parchi_kg %}
+                <span class="highlight-value">{{ row.parchi_kg }}</span>
+              {% else %}
+                <span style="color:#475569;">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if row.difference > 0 %}
+                <span class="positive">+{{ row.difference }}</span>
+              {% elif row.difference < 0 %}
+                <span class="negative">{{ row.difference }}</span>
+              {% else %}
+                <span class="neutral">0.00</span>
+              {% endif %}
+            </td>
+            <td>{{ row.theoretical_total_compound }}</td>
+            <td>
+              {% if row.mixing_actual_compound %}
+                <span class="highlight-value">{{ row.mixing_actual_compound }}</span>
+              {% else %}
+                <span style="color:#475569;">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if row.variance > 0 %}
+                <span class="positive">+{{ row.variance }}</span>
+              {% elif row.variance < 0 %}
+                <span class="negative">{{ row.variance }}</span>
+              {% else %}
+                <span class="neutral">0.00</span>
+              {% endif %}
+            </td>
+            <td>{% if row.chakka %}{{ row.chakka }}{% else %}<span style="color:#475569;">—</span>{% endif %}</td>
+            <td>{% if row.calander_bias_cutt %}{{ row.calander_bias_cutt }}{% else %}<span style="color:#475569;">—</span>{% endif %}</td>
+            <td>{% if row.packing_wastage %}{{ row.packing_wastage }}{% else %}<span style="color:#475569;">—</span>{% endif %}</td>
+            <td>{% if row.tar %}{{ row.tar }}{% else %}<span style="color:#475569;">—</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+
+          <!-- Totals -->
+          <tr class="totals-row">
+            <td><i class="fas fa-calculator"></i> TOTALS</td>
+            <td><strong>{{ totals.production_pcs }}</strong></td>
+            <td><strong>{{ totals.packing_pcs }}</strong></td>
+            <td><strong>{{ totals.theoretical_kg }}</strong></td>
+            <td><strong>{{ totals.parchi_kg }}</strong></td>
+            <td>
+              {% if totals.difference > 0 %}
+                <span class="positive">+{{ totals.difference }}</span>
+              {% elif totals.difference < 0 %}
+                <span class="negative">{{ totals.difference }}</span>
+              {% else %}
+                0.00
+              {% endif %}
+            </td>
+            <td><strong>{{ totals.theoretical_total_compound }}</strong></td>
+            <td><strong>{{ totals.mixing_actual_compound }}</strong></td>
+            <td>
+              {% if totals.variance > 0 %}
+                <span class="positive">+{{ totals.variance }}</span>
+              {% elif totals.variance < 0 %}
+                <span class="negative">{{ totals.variance }}</span>
+              {% else %}
+                0.00
+              {% endif %}
+            </td>
+            <td>{{ totals.chakka }}</td>
+            <td>{{ totals.calander_bias_cutt }}</td>
+            <td>{{ totals.packing_wastage }}</td>
+            <td>{{ totals.tar }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend" style="padding: 0.75rem 2rem 1.5rem;">
+      <span class="legend-item">
+        <span class="legend-color prod"></span> Production
+      </span>
+      <span class="legend-item">
+        <span class="legend-color weight"></span> Weight / Parchi
+      </span>
+      <span class="legend-item">
+        <span class="legend-color compound"></span> Compound
+      </span>
+      <span class="legend-item">
+        <span class="legend-color misc"></span> Misc. Manual
+      </span>
+      <span class="legend-item">
+        <span class="legend-color latest"></span> Latest Entry
+      </span>
+      <span class="legend-item" style="color:#64748b;">
+        <i class="fas fa-info-circle"></i> Formula: Theo. KG × 82.5% = Theo. Compound
+      </span>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-inbox icon-large"></i>
+      <h4>No Data Available</h4>
+      <p>No production entries found for this date range.</p>
+      <p style="font-size:0.75rem; color:#475569; margin-top:0.4rem;">
+        <i class="fas fa-lightbulb"></i> Try adjusting the date range or add a new entry above.
+      </p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+  function setCurrentMonth() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const lastDay = new Date(y, now.getMonth() + 1, 0).getDate();
+    document.getElementById('from_date').value = `${y}-${m}-01`;
+    document.getElementById('to_date').value = `${y}-${m}-${String(lastDay).padStart(2, '0')}`;
+  }
+</script>
+{% endblock %}

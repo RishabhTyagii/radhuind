@@ -3,17 +3,51 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>{% block title %}HRMS | Radhu ERP{% endblock %}</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    
+    <!-- Searchable Select Plugin (TomSelect) -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <style>
+        .ts-control {
+            border-radius: 0.5rem !important;
+            padding: 0.6rem 0.8rem !important;
+            border-color: #cbd5e1 !important;
+            font-size: 0.875rem !important;
+        }
+        /* Django form widget styles */
+        .form-control, .form-select {
+            display: block;
+            width: 100%;
+            padding: 0.55rem 0.8rem;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: #1e293b;
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            transition: border-color 0.15s ease;
+            outline: none;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+        }
+        select.form-select {
+            appearance: auto;
+        }
+        textarea.form-control {
+            resize: vertical;
+        }
+        input[type="file"].form-control {
+            padding: 0.3rem 0.5rem;
+        }
+    </style>
 </head>
 
 <body class="bg-slate-100">
@@ -21,110 +55,85 @@
 <div class="flex min-h-screen">
 
     <!-- Sidebar -->
-    <aside class="w-72 bg-slate-900 text-white">
+    <aside class="w-72 bg-slate-900 text-white flex flex-col justify-between shrink-0">
 
-        <div class="p-5 border-b border-slate-700">
-            <h1 class="text-2xl font-bold">
-                <i class="fa-solid fa-users mr-2"></i>
-                HRMS
-            </h1>
+        <div>
+            <div class="p-5 border-b border-slate-700 flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold">
+                        <i class="fa-solid fa-users text-blue-400 mr-2"></i> HRMS
+                    </h1>
+                    <p class="text-xs text-slate-400">Radhu ERP Portal</p>
+                </div>
+                <a href="{% url 'home' %}" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg flex items-center gap-1 font-semibold" title="Back to Main Portal">
+                    <i class="fa-solid fa-house"></i> Home
+                </a>
+            </div>
 
-            <p class="text-sm text-slate-400">
-                Radhu ERP
-            </p>
+            <nav class="mt-4 space-y-1 px-3">
+                <a href="{% url 'hr_dashboard' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-sm font-medium">
+                    <i class="fa-solid fa-gauge text-blue-400 w-5"></i> Dashboard
+                </a>
+                <a href="{% url 'employee_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-sm font-medium">
+                    <i class="fa-solid fa-users text-emerald-400 w-5"></i> Employees
+                </a>
+                <a href="{% url 'attendance_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-sm font-medium">
+                    <i class="fa-solid fa-calendar-check text-amber-400 w-5"></i> Attendance
+                </a>
+                <a href="{% url 'production_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-sm font-medium">
+                    <i class="fa-solid fa-industry text-purple-400 w-5"></i> Production
+                </a>
+                <a href="{% url 'salary_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-sm font-medium">
+                    <i class="fa-solid fa-money-bill-wave text-rose-400 w-5"></i> Salary & Payroll
+                </a>
+                <a href="{% url 'department_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-sm font-medium">
+                    <i class="fa-solid fa-building text-indigo-400 w-5"></i> Departments
+                </a>
+                <a href="{% url 'advance_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-sm font-medium">
+                    <i class="fa-solid fa-hand-holding-dollar text-teal-400 w-5"></i> Advance
+                </a>
+                <a href="{% url 'bonus_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-sm font-medium">
+                    <i class="fa-solid fa-gift text-pink-400 w-5"></i> Bonus
+                </a>
+                <a href="{% url 'deduction_list' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 text-sm font-medium">
+                    <i class="fa-solid fa-minus-circle text-orange-400 w-5"></i> Deduction
+                </a>
+            </nav>
         </div>
 
-  <nav class="mt-5">
-
-    <a href="{% url 'hr_dashboard' %}"
-       class="flex items-center gap-3 px-5 py-3 hover:bg-slate-800">
-        <i class="fa-solid fa-gauge"></i>
-        Dashboard
-    </a>
-
-    <a href="{% url 'department_list' %}"
-       class="flex items-center gap-3 px-5 py-3 hover:bg-slate-800">
-        <i class="fa-solid fa-building"></i>
-        Departments
-    </a>
-
-    <a href="{% url 'employee_list' %}"
-       class="flex items-center gap-3 px-5 py-3 hover:bg-slate-800">
-        <i class="fa-solid fa-users"></i>
-        Employees
-    </a>
-
-    <a href="{% url 'attendance_list' %}"
-       class="flex items-center gap-3 px-5 py-3 hover:bg-slate-800">
-        <i class="fa-solid fa-calendar-check"></i>
-        Attendance
-    </a>
-
-    <a href="{% url 'production_list' %}"
-       class="flex items-center gap-3 px-5 py-3 hover:bg-slate-800">
-        <i class="fa-solid fa-industry"></i>
-        Production
-    </a>
-
-    <a href="{% url 'salary_list' %}"
-       class="flex items-center gap-3 px-5 py-3 hover:bg-slate-800">
-        <i class="fa-solid fa-money-bill-wave"></i>
-        Salary
-    </a>
-
-    <a href="{% url 'advance_list' %}"
-       class="flex items-center gap-3 px-5 py-3 hover:bg-slate-800">
-        <i class="fa-solid fa-hand-holding-dollar"></i>
-        Advance
-    </a>
-
-    <a href="{% url 'bonus_list' %}"
-       class="flex items-center gap-3 px-5 py-3 hover:bg-slate-800">
-        <i class="fa-solid fa-gift"></i>
-        Bonus
-    </a>
-
-    <a href="{% url 'deduction_list' %}"
-       class="flex items-center gap-3 px-5 py-3 hover:bg-slate-800">
-        <i class="fa-solid fa-minus-circle"></i>
-        Deduction
-    </a>
-
-</nav>
+        <div class="p-4 border-t border-slate-800 text-xs text-slate-500 text-center">
+            Radhu Stock & HRMS Portal © {% now "Y" %}
+        </div>
     </aside>
 
     <!-- Content -->
-    <main class="flex-1">
+    <main class="flex-1 overflow-x-hidden">
 
-        <div class="bg-white shadow-sm px-8 py-4 flex justify-between items-center">
-
+        <div class="bg-white shadow-sm px-8 py-4 flex justify-between items-center border-b border-slate-200">
             <div>
                 <h2 class="text-2xl font-bold text-slate-800">
-                    {% block page_title %}
-                    Dashboard
-                    {% endblock %}
+                    {% block page_title %}Dashboard{% endblock %}
                 </h2>
             </div>
 
-            <div class="flex items-center gap-3">
-
-                <span class="text-slate-600">
+            <div class="flex items-center gap-4">
+                <a href="{% url 'home' %}" class="text-xs text-slate-600 hover:text-slate-900 font-semibold flex items-center gap-1 border px-3 py-1.5 rounded-lg">
+                    <i class="fa-solid fa-arrow-left"></i> Main Portal
+                </a>
+                <span class="text-sm font-semibold text-slate-700">
                     {{ request.user.username }}
                 </span>
-
-                <img src="https://ui-avatars.com/api/?name={{ request.user.username }}&background=0D8ABC&color=fff"
-                     class="w-10 h-10 rounded-full">
-
+                <img src="https://ui-avatars.com/api/?name={{ request.user.username }}&background=0D8ABC&color=fff" class="w-9 h-9 rounded-full">
             </div>
-
         </div>
 
         <div class="p-8">
 
             {% if messages %}
                 {% for message in messages %}
-                    <div class="mb-4 bg-green-100 text-green-700 px-4 py-3 rounded">
-                        {{ message }}
+                    <div class="mb-4 bg-emerald-100 border border-emerald-300 text-emerald-800 px-4 py-3 rounded-lg flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                        <div>{{ message }}</div>
                     </div>
                 {% endfor %}
             {% endif %}
@@ -138,5 +147,16 @@
 
 </div>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll("select#id_employee").forEach(function(el) {
+            new TomSelect(el, {
+                create: false,
+                placeholder: "Type code or name to search employee...",
+                sortField: { field: "text", direction: "asc" }
+            });
+        });
+    });
+</script>
 </body>
 </html>

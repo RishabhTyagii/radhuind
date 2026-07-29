@@ -292,16 +292,26 @@
             
             <h1 class="text-xl font-bold text-slate-800 mb-1">Daily Production Entry</h1>
             <p class="text-sm text-slate-500 mb-6 flex items-center gap-2">
+            <p class="text-sm text-slate-500 mb-4 flex items-center gap-2">
                 <i class="fas fa-info-circle text-slate-600"></i>
-                This quantity will be directly added to <span class="font-semibold text-slate-800">"STOCK"</span>.
+                Enter Total Curing, 2nd Grade & Rejected. <span class="font-semibold text-slate-800">1st Grade (Black)</span> will auto calculate.
             </p>
+
+            <!-- Formula Live Banner -->
+            <div class="p-3 mb-4 rounded-xl bg-slate-900 text-white flex items-center justify-between text-xs">
+                <div>
+                    <span class="text-slate-400 font-medium">Formula:</span>
+                    <span class="font-bold text-amber-400">1st Grade (Black)</span> = All Curing - (2nd Grade + Rejected)
+                </div>
+                <span class="px-2 py-1 bg-emerald-500/20 text-emerald-300 rounded font-semibold" id="calc_status">Auto Active</span>
+            </div>
 
             <form method="post" class="space-y-4">
                 {% csrf_token %}
                 {% for field in form %}
                 <div>
                     <label class="form-label">
-                        <i class="fas {% if 'tyre' in field.name %}fa-tire{% elif 'quantity' in field.name %}fa-hashtag{% else %}fa-tag{% endif %}"></i>
+                        <i class="fas {% if 'tyre' in field.name %}fa-tire{% elif 'curing' in field.name %}fa-layer-group{% elif 'second' in field.name %}fa-tag{% elif 'rejected' in field.name %}fa-times-circle{% elif 'first' in field.name %}fa-check-circle{% else %}fa-hashtag{% endif %}"></i>
                         {{ field.label }}
                     </label>
                     {{ field }}
@@ -316,7 +326,7 @@
 
                 <button type="submit" class="submit-btn">
                     <i class="fas fa-plus-circle mr-2"></i>
-                    Add Production
+                    Save Production Entry
                 </button>
             </form>
         </div>
@@ -337,34 +347,43 @@
                         <tr>
                             <th>Date</th>
                             <th>Tyre</th>
-                            <th class="text-right">Qty</th>
-                            <th>By</th>
+                            <th class="text-center">Total Curing</th>
+                            <th class="text-center">1st Grade (Black)</th>
+                            <th class="text-center">2nd Grade</th>
+                            <th class="text-center">Rejected</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for e in recent %}
                         <tr>
-                            <td class="text-slate-500">
+                            <td class="text-slate-500 whitespace-nowrap">
                                 <i class="fas fa-calendar-day mr-1 text-slate-300"></i>
-                                {{ e.date|date:"d-M-Y" }}
+                                {{ e.date|date:"d-M" }}
                             </td>
                             <td class="font-medium text-slate-700">{{ e.tyre_item }}</td>
-                            <td class="text-right">
+                            <td class="text-center font-semibold text-slate-600">
+                                {{ e.all_curing|default:e.quantity }}
+                            </td>
+                            <td class="text-center">
                                 <span class="qty-badge qty-badge-green">
-                                    <i class="fas fa-plus"></i>
-                                    {{ e.quantity }}
+                                    <i class="fas fa-check"></i>
+                                    {{ e.first_grade|default:e.quantity }}
                                 </span>
                             </td>
-                            <td>
-                                <span class="user-badge">
-                                    <i class="fas fa-user-circle"></i>
-                                    {{ e.user.username|default:"-" }}
+                            <td class="text-center">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                                    {{ e.second_grade|default:0 }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                                    {{ e.rejected_grade|default:0 }}
                                 </span>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="empty-state">
+                            <td colspan="6" class="empty-state">
                                 <i class="fas fa-inbox"></i>
                                 <p class="text-base">No entries found yet.</p>
                                 <p class="text-sm text-slate-400">Add a production entry from the form.</p>
@@ -379,8 +398,8 @@
 </div>
 
 <script>
-// Animate cards on load
 document.addEventListener('DOMContentLoaded', function() {
+    // Animate cards
     const cards = document.querySelectorAll('.production-card');
     cards.forEach((card, index) => {
         card.style.opacity = '0';
@@ -391,6 +410,40 @@ document.addEventListener('DOMContentLoaded', function() {
             card.style.transform = 'translateY(0)';
         }, 100 + (index * 150));
     });
+
+    // Auto Calculation Logic: 1st Grade = All Curing - (2nd Grade + Rejected)
+    const allCuringInput = document.getElementById('id_all_curing');
+    const secondGradeInput = document.getElementById('id_second_grade');
+    const rejectedGradeInput = document.getElementById('id_rejected_grade');
+    const firstGradeInput = document.getElementById('id_first_grade');
+    const calcStatus = document.getElementById('calc_status');
+
+    function calculateFirstGrade() {
+        if (!allCuringInput || !firstGradeInput) return;
+
+        const allCuring = parseInt(allCuringInput.value) || 0;
+        const secondGrade = parseInt(secondGradeInput ? secondGradeInput.value : 0) || 0;
+        const rejectedGrade = parseInt(rejectedGradeInput ? rejectedGradeInput.value : 0) || 0;
+
+        const firstGrade = allCuring - (secondGrade + rejectedGrade);
+        
+        firstGradeInput.value = firstGrade >= 0 ? firstGrade : 0;
+
+        if (firstGrade < 0 && calcStatus) {
+            calcStatus.innerText = 'Error: Exceeds Curing!';
+            calcStatus.className = 'px-2 py-1 bg-red-500/20 text-red-300 rounded font-semibold';
+        } else if (calcStatus) {
+            calcStatus.innerText = 'Auto Active';
+            calcStatus.className = 'px-2 py-1 bg-emerald-500/20 text-emerald-300 rounded font-semibold';
+        }
+    }
+
+    if (allCuringInput) allCuringInput.addEventListener('input', calculateFirstGrade);
+    if (secondGradeInput) secondGradeInput.addEventListener('input', calculateFirstGrade);
+    if (rejectedGradeInput) rejectedGradeInput.addEventListener('input', calculateFirstGrade);
+    
+    // Run initial calculation
+    calculateFirstGrade();
 });
 </script>
 {% endblock %}

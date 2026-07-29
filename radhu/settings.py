@@ -140,6 +140,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / "mediafiles"
 STATICFILES_DIRS = [
     BASE_DIR / "static",  # agar tumhara project root me static folder hai

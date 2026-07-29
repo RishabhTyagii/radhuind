@@ -1,162 +1,119 @@
 {% extends 'hrms/base.html' %}
 
-{% block title %}Employees{% endblock %}
-{% block page_title %}Employee Master{% endblock %}
+{% block title %}Employee Directory{% endblock %}
+{% block page_title %}Employee Master Directory{% endblock %}
 
 {% block content %}
+<div class="bg-white rounded-xl shadow-lg p-6 space-y-6">
 
-<div class="bg-white rounded-xl shadow p-5">
+    <!-- Search & Filter Header -->
+    <div class="flex flex-wrap justify-between items-center gap-4 pb-4 border-b border-slate-200">
+        <form method="get" class="flex flex-wrap items-center gap-3">
+            <input type="text" name="search" value="{{ search }}" placeholder="Search Code, Name or Mobile..." class="border rounded-lg px-4 py-2 text-sm bg-slate-50 border-slate-300 w-64">
+            
+            <select name="department" class="border rounded-lg px-3 py-2 text-sm bg-slate-50 border-slate-300">
+                <option value="">All Departments</option>
+                {% for d in departments %}
+                    <option value="{{ d.id }}" {% if dept_id == d.id|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>
+                {% endfor %}
+            </select>
 
-    <div class="flex justify-between mb-5">
+            <select name="emp_type" class="border rounded-lg px-3 py-2 text-sm bg-slate-50 border-slate-300">
+                <option value="">All Types</option>
+                <option value="Company" {% if emp_type == "Company" %}selected{% endif %}>Company</option>
+                <option value="Contractor" {% if emp_type == "Contractor" %}selected{% endif %}>Contractor</option>
+            </select>
 
-        <form method="get">
+            <select name="status" class="border rounded-lg px-3 py-2 text-sm bg-slate-50 border-slate-300">
+                <option value="Active" {% if status_filter == "Active" %}selected{% endif %}>Active</option>
+                <option value="Inactive" {% if status_filter == "Inactive" %}selected{% endif %}>Inactive</option>
+                <option value="" {% if status_filter == "" %}selected{% endif %}>All Status</option>
+            </select>
 
-            <input
-                type="text"
-                name="search"
-                value="{{ search }}"
-                placeholder="Search Employee"
-                class="border rounded px-4 py-2">
-
-            <button class="bg-blue-600 text-white px-5 py-2 rounded">
-                Search
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium shadow">
+                <i class="fa-solid fa-magnifying-glass mr-1"></i> Filter
             </button>
-
+            <a href="{% url 'employee_list' %}" class="text-xs text-slate-500 hover:underline">Reset</a>
         </form>
 
-        <a href="{% url 'employee_add' %}"
-           class="bg-green-600 text-white px-5 py-2 rounded">
-
-            + Add Employee
-
+        <a href="{% url 'employee_add' %}" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow flex items-center gap-2">
+            <i class="fa-solid fa-user-plus"></i> Add Employee
         </a>
-
     </div>
 
-    <div class="overflow-auto">
-
-        <table class="w-full">
-
-            <thead class="bg-gray-100">
-
+    <!-- Employee Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm border-collapse">
+            <thead class="bg-slate-100 text-slate-700 uppercase text-xs font-bold tracking-wider">
                 <tr>
-
-                    <th class="p-3">Code</th>
-
-                    <th>Name</th>
-
-                    <th>Department</th>
-
-                    <th>Designation</th>
-
-                    <th>Type</th>
-
-                    <th>Mobile</th>
-
-                    <th>Status</th>
-
-                    <th>Action</th>
-
+                    <th class="p-3 border-b">Employee</th>
+                    <th class="p-3 border-b">Code</th>
+                    <th class="p-3 border-b">Department</th>
+                    <th class="p-3 border-b">Designation</th>
+                    <th class="p-3 border-b">Type</th>
+                    <th class="p-3 border-b">Mobile</th>
+                    <th class="p-3 border-b">Pay Rates</th>
+                    <th class="p-3 border-b">Status</th>
+                    <th class="p-3 border-b text-center">Action</th>
                 </tr>
-
             </thead>
-
             <tbody>
-
-            {% for emp in employees %}
-
-                <tr class="border-b">
-
+                {% for emp in employees %}
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="p-3 flex items-center gap-3">
+                        {% if emp.photo %}
+                            <img src="{{ emp.photo.url }}" class="w-10 h-10 rounded-full object-cover border">
+                        {% else %}
+                            <img src="https://ui-avatars.com/api/?name={{ emp.name|urlencode }}&background=1e293b&color=fff" class="w-10 h-10 rounded-full object-cover">
+                        {% endif %}
+                        <div>
+                            <a href="{% url 'employee_detail' emp.id %}" class="font-bold text-slate-800 hover:text-blue-600">
+                                {{ emp.name }}
+                            </a>
+                            {% if emp.father_name %}<div class="text-xs text-slate-400">S/o {{ emp.father_name }}</div>{% endif %}
+                        </div>
+                    </td>
+                    <td class="p-3 font-semibold text-slate-700">{{ emp.employee_code }}</td>
+                    <td class="p-3 text-slate-600">{{ emp.department|default:"-" }}</td>
+                    <td class="p-3 text-slate-600">{{ emp.designation|default:"-" }}</td>
                     <td class="p-3">
-
-                        {{ emp.employee_code }}
-
+                        <span class="px-2 py-0.5 rounded text-xs font-semibold {% if emp.employee_type == 'Company' %}bg-blue-100 text-blue-800{% else %}bg-purple-100 text-purple-800{% endif %}">
+                            {{ emp.employee_type }}
+                        </span>
+                        {% if emp.contractor_name %}<div class="text-[11px] text-slate-400">{{ emp.contractor_name }}</div>{% endif %}
                     </td>
-
-                    <td>
-
-                        {{ emp.name }}
-
+                    <td class="p-3 text-slate-600">{{ emp.mobile }}</td>
+                    <td class="p-3 text-xs">
+                        <div>Basic: ₹{{ emp.basic_salary }}</div>
+                        <div class="text-slate-400">Hourly: ₹{{ emp.hourly_rate }} | OT: ₹{{ emp.overtime_rate }}</div>
                     </td>
-
-                    <td>
-
-                        {{ emp.department }}
-
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold {% if emp.status == 'Active' %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ emp.status }}
+                        </span>
                     </td>
-
-                    <td>
-
-                        {{ emp.designation }}
-
+                    <td class="p-3 text-center">
+                        <div class="flex justify-center items-center gap-2">
+                            <a href="{% url 'employee_detail' emp.id %}" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded" title="View Month Breakdown & Profile">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                            <a href="{% url 'employee_edit' emp.id %}" class="p-1.5 text-amber-600 hover:bg-amber-50 rounded" title="Edit Employee">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+                            <a href="{% url 'employee_delete' emp.id %}" class="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Delete" onclick="return confirm('Are you sure you want to delete {{ emp.name }}?');">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                        </div>
                     </td>
-
-                    <td>
-
-                        {{ emp.employee_type }}
-
-                    </td>
-
-                    <td>
-
-                        {{ emp.mobile }}
-
-                    </td>
-
-                    <td>
-
-                        {{ emp.status }}
-
-                    </td>
-
-                    <td>
-
-                        <a href="{% url 'employee_detail' emp.id %}" class="text-blue-700">
-
-                            View
-
-                        </a>
-
-                        |
-
-                        <a href="{% url 'employee_edit' emp.id %}" class="text-green-700">
-
-                            Edit
-
-                        </a>
-
-                        |
-
-                        <a href="{% url 'employee_delete' emp.id %}" class="text-red-700">
-
-                            Delete
-
-                        </a>
-
-                    </td>
-
                 </tr>
-
-            {% empty %}
-
+                {% empty %}
                 <tr>
-
-                    <td colspan="8" class="text-center p-5">
-
-                        No Employees Found
-
-                    </td>
-
+                    <td colspan="9" class="p-6 text-center text-slate-400">No employees found.</td>
                 </tr>
-
-            {% endfor %}
-
+                {% endfor %}
             </tbody>
-
         </table>
-
     </div>
 
 </div>
-
 {% endblock %}

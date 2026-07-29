@@ -15,6 +15,8 @@ def service_worker(request):
     response['Service-Worker-Allowed'] = '/'
     return response
 
+from django.conf.urls.static import static
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', stock_views.login_view, name='login'),
@@ -27,7 +29,7 @@ urlpatterns = [
     path('tallysync/', include('tallysync.urls')),
     path('service-worker.js', service_worker, name='service_worker'),
     path("hr/", include("hrms.urls")),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 
 

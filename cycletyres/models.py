@@ -1,6 +1,5 @@
-from django.db import models
+from decimal import Decimal
 
-# Create your models here.
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -12,7 +11,9 @@ class CycleTyreItem(models.Model):
     material = models.CharField("MATERIAL", max_length=20)    # e.g. CTC / NYL
     brand = models.CharField("BRAND", max_length=80)
 
-    stock = models.IntegerField("STOCK", default=0)
+    weight = models.DecimalField("Weight (Kg)", max_digits=8, decimal_places=3, default=0.000, help_text="Weight of tyre in Kg")
+    stock = models.IntegerField("STOCK (1st Grade / Black)", default=0)
+    second_stock = models.IntegerField("2nd Grade Stock", default=0)
     rfm_stock = models.IntegerField("R.F.M. Stock", default=0)
 
     is_active = models.BooleanField(default=True)
@@ -23,15 +24,17 @@ class CycleTyreItem(models.Model):
         unique_together = ("box_type", "size", "material", "brand")
 
     def __str__(self):
-        return f"{self.size} {self.box_type} {self.material} {self.brand}".strip()
+        w_str = f" [{self.weight}kg]" if self.weight else ""
+        return f"{self.size} {self.box_type} {self.material} {self.brand}{w_str}".strip()
 
     @property
     def total_stock(self):
-        return self.stock + self.rfm_stock
+        return self.stock + self.second_stock + self.rfm_stock
 
 
 BUCKET_CHOICES = [
-    ("stock", "STOCK"),
+    ("stock", "STOCK (1st Grade)"),
+    ("second_stock", "2nd Grade Stock"),
     ("rfm_stock", "R.F.M. Stock"),
 ]
 
@@ -48,6 +51,13 @@ class CycleTyreEntry(models.Model):
     entry_type = models.CharField(max_length=15, choices=ENTRY_TYPE_CHOICES)
     bucket = models.CharField(max_length=15, choices=BUCKET_CHOICES, default="stock")
     quantity = models.IntegerField(help_text="Enter positive quantity")
+    
+    # Grade breakdown fields for production entries
+    all_curing = models.IntegerField("All Curing", default=0)
+    first_grade = models.IntegerField("1st Grade (Black)", default=0)
+    second_grade = models.IntegerField("2nd Grade", default=0)
+    rejected_grade = models.IntegerField("Rejected Grade", default=0)
+
     date = models.DateField()
     bill_number = models.CharField(max_length=50, blank=True)
     remark = models.CharField(max_length=255, blank=True)
@@ -60,3 +70,24 @@ class CycleTyreEntry(models.Model):
 
     def __str__(self):
         return f"{self.date} | {self.tyre_item} | {self.get_entry_type_display()} | {self.quantity}"
+
+
+class CycleTyreDailyManualEntry(models.Model):
+    """Daily manual ground-truth entries for Cycle Tyre Production Summary."""
+    date = models.DateField(unique=True)
+    parchi_kg = models.DecimalField("Packing Parch Kg", max_digits=10, decimal_places=2, default=0)
+    mixing_actual_compound = models.DecimalField("Mixing Actual Compound", max_digits=10, decimal_places=2, default=0)
+    chakka = models.DecimalField("Chakka", max_digits=10, decimal_places=2, default=0)
+    calander_bias_cutt = models.DecimalField("Calander Bias Cutt.", max_digits=10, decimal_places=2, default=0)
+    packing_wastage = models.DecimalField("Packing Wastage", max_digits=10, decimal_places=2, default=0)
+    tar = models.DecimalField("Tar", max_digits=10, decimal_places=2, default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-date"]
+        verbose_name = "Cycle Tyre Daily Manual Entry"
+        verbose_name_plural = "Cycle Tyre Daily Manual Entries"
+
+    def __str__(self):
+        return f"Cycle Tyre Daily Manual - {self.date}"
+

@@ -1,0 +1,148 @@
+{% extends "cycletyres/base.html" %}
+{% load static %}
+
+{% block title %}2nd Grade Stock - Cycle Tyre{% endblock %}
+
+{% block content %}
+<style>
+    .stock-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        margin-bottom: 24px;
+    }
+    .badge-amber {
+        background: rgba(245, 158, 11, 0.15);
+        color: #d97706;
+    }
+</style>
+
+<div class="py-6 space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 mb-2">
+                <i class="fas fa-tags"></i> 2nd Grade Inventory
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800">2nd Grade Tyre Stock</h1>
+            <p class="text-sm text-slate-500">Separately tracked 2nd grade stock accumulated from production entries.</p>
+        </div>
+
+        <div class="flex items-center gap-4 bg-white/80 backdrop-blur p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-xl font-bold">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <div>
+                <span class="text-xs text-slate-400 font-medium uppercase tracking-wider block">Total 2nd Stock</span>
+                <span class="text-2xl font-extrabold text-slate-800">{{ total_second_stock }} <span class="text-sm font-normal text-slate-500">tyres</span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter & Search -->
+    <div class="stock-card">
+        <form method="get" class="flex flex-col sm:flex-row gap-3">
+            <div class="relative flex-1">
+                <i class="fas fa-search absolute left-4 top-3.5 text-slate-400"></i>
+                <input type="text" name="q" value="{{ q }}" placeholder="Search size, box type, material, brand..." 
+                       class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+            </div>
+            <button type="submit" class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-semibold transition">
+                Filter
+            </button>
+            {% if q %}
+            <a href="{% url 'cycletyre_second_grade_stock' %}" class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-sm font-semibold flex items-center justify-center">
+                Reset
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Stock Table -->
+    <div class="stock-card overflow-hidden">
+        <h2 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <i class="fas fa-list text-amber-500"></i> Tyre Wise 2nd Grade Stock List
+        </h2>
+
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse text-left text-sm">
+                <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50/50 text-slate-500 uppercase text-xs tracking-wider">
+                        <th class="py-3 px-4">Size</th>
+                        <th class="py-3 px-4">Box Type</th>
+                        <th class="py-3 px-4">Material</th>
+                        <th class="py-3 px-4">Brand</th>
+                        <th class="py-3 px-4">Weight (Kg)</th>
+                        <th class="py-3 px-4 text-center">2nd Grade Stock</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for item in items %}
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="py-3.5 px-4 font-semibold text-slate-800">{{ item.size }}</td>
+                        <td class="py-3.5 px-4 text-slate-600">{{ item.box_type }}</td>
+                        <td class="py-3.5 px-4 text-slate-600">{{ item.material }}</td>
+                        <td class="py-3.5 px-4 text-slate-600">{{ item.brand }}</td>
+                        <td class="py-3.5 px-4 text-slate-500">
+                            {% if item.weight %}{{ item.weight }} kg{% else %}-{% endif %}
+                        </td>
+                        <td class="py-3.5 px-4 text-center">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-bold text-sm badge-amber">
+                                <i class="fas fa-box-open"></i>
+                                {{ item.second_stock }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-slate-400">
+                            <i class="fas fa-inbox text-3xl mb-2 block opacity-40"></i>
+                            No 2nd grade stock found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent 2nd Grade Entries -->
+    <div class="stock-card overflow-hidden">
+        <h2 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <i class="fas fa-history text-slate-500"></i> Recent 2nd Grade Production Logs
+        </h2>
+
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse text-left text-xs">
+                <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50/50 text-slate-500 uppercase tracking-wider">
+                        <th class="py-2.5 px-4">Date</th>
+                        <th class="py-2.5 px-4">Tyre</th>
+                        <th class="py-2.5 px-4 text-center">2nd Grade Qty</th>
+                        <th class="py-2.5 px-4 text-center">Total Curing</th>
+                        <th class="py-2.5 px-4">User</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for entry in second_grade_entries %}
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="py-2.5 px-4 text-slate-500">{{ entry.date|date:"d-M-Y" }}</td>
+                        <td class="py-2.5 px-4 font-medium text-slate-700">{{ entry.tyre_item }}</td>
+                        <td class="py-2.5 px-4 text-center font-bold text-amber-700">+{{ entry.second_grade }}</td>
+                        <td class="py-2.5 px-4 text-center text-slate-500">{{ entry.all_curing }}</td>
+                        <td class="py-2.5 px-4 text-slate-500">{{ entry.user.username|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-6 text-slate-400">No 2nd grade entries logged yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

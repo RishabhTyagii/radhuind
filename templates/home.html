@@ -40,10 +40,11 @@
     }
 
     .module-grid {
-display:flex;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
         gap: 24px;
-        /* max-width: 640px; */
-        /* flex-wrap: wrap; */
+        max-width: 1200px;
         margin: 0 auto;
     }
 
@@ -52,13 +53,17 @@ display:flex;
         backdrop-filter: blur(8px);
         border: 2px solid rgba(226, 232, 240, 0.6);
         border-radius: 24px;
-        padding: 40px 32px;
+        padding: 32px 24px;
+        width: 260px;
         text-align: center;
         transition: all 0.3s ease;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
         position: relative;
         overflow: hidden;
-        display: block;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
         text-decoration: none;
         color: inherit;
     }
@@ -83,25 +88,26 @@ display:flex;
     }
 
     .module-icon {
-        font-size: 56px;
-        margin-bottom: 16px;
+        font-size: 48px;
+        margin-bottom: 12px;
         display: block;
     }
     .module-title {
-        font-size: 22px;
+        font-size: 20px;
         font-weight: 700;
         color: #1e293b;
         margin-bottom: 4px;
     }
     .module-desc {
-        font-size: 14px;
+        font-size: 13px;
         color: #64748b;
-        line-height: 1.5;
+        line-height: 1.4;
+        margin-bottom: 12px;
     }
 
     .module-badge {
         display: inline-block;
-        margin-top: 12px;
+        margin-top: auto;
         padding: 4px 16px;
         border-radius: 20px;
         font-size: 11px;
@@ -118,19 +124,12 @@ display:flex;
             font-size: 26px;
         }
         .module-card {
-            padding: 32px 24px;
+            width: 100%;
+            padding: 24px;
         }
         .module-icon {
-            font-size: 44px;
+            font-size: 40px;
         }
-
-            .module-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 24px;
-        max-width: 640px;
-        margin: 0 auto;
-    }
     }
 </style>
 
@@ -138,55 +137,70 @@ display:flex;
     <!-- Header -->
     <div class="home-header">
         <h1>Radhu Industries</h1>
-        <p>Stock Management Portal — Select a module to continue</p>
+        <p>Stock & HR Management Portal — Select a module to continue</p>
     </div>
 
     <!-- Module Grid -->
     <div class="module-grid">
         <!-- Auto Tyre Module -->
         <a href="{% url 'dashboard' %}" class="module-card">
-            <span class="module-icon">🛞</span>
-            <div class="module-title">Auto Tyre</div>
-            <div class="module-desc">Production, Dispatch, Stock, Reports</div>
+            <div>
+                <span class="module-icon">🛞</span>
+                <div class="module-title">Auto Tyre</div>
+                <div class="module-desc">Production, Dispatch, Stock, Reports</div>
+            </div>
             <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
         </a>
 
         <!-- Cycle Tube Module -->
         <a href="{% url 'tube_dashboard' %}" class="module-card">
-            <span class="module-icon">🚲</span>
-            <div class="module-title">Cycle Tube</div>
-            <div class="module-desc">Production, Sale, Stock, Reports</div>
+            <div>
+                <span class="module-icon">🚲</span>
+                <div class="module-title">Cycle Tube</div>
+                <div class="module-desc">Production, Sale, Stock, Reports</div>
+            </div>
             <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
         </a>
 
+        <!-- Cycle Tyre Module -->
+        <a href="{% url 'cycletyre_dashboard' %}" class="module-card">
+            <div>
+                <span class="module-icon">🛞</span>
+                <div class="module-title">Cycle Tyre</div>
+                <div class="module-desc">Production, Sale, Stock, Daily Summary</div>
+            </div>
+            <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
+        </a>
 
+        <!-- Raw Materials Module -->
+        <a href="{% url 'raw_dashboard' %}" class="module-card">
+            <div>
+                <span class="module-icon">🏗️</span>
+                <div class="module-title">Raw Materials</div>
+                <div class="module-desc">Inventory, Stock & Material Entries</div>
+            </div>
+            <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
+        </a>
 
-<a href="{% url 'cycletyre_dashboard' %}" class="module-card">
-    <span class="module-icon">🛞</span>
-    <div class="module-title">Cycle Tyre</div>
-    <div class="module-desc">Production, Sale, Stock, Reports</div>
-    <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
-</a>
+        <!-- HRMS Module -->
+        <a href="{% url 'hr_dashboard' %}" class="module-card">
+            <div>
+                <span class="module-icon">👥</span>
+                <div class="module-title">HRMS & Payroll</div>
+                <div class="module-desc">Attendance, Production, Salary, Leaves</div>
+            </div>
+            <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
+        </a>
 
-
-
-<a href="{% url 'raw_dashboard' %}" class="module-card">
-    <span class="module-icon">🏗️</span>
-    <div class="module-title">Raw Materials</div>
-    <div class="module-desc">Manage raw material inventory and entries</div>
-    <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
-</a>
-
-
-
-
-
-<a href="{% url 'tally_sales_summary' %}" class="module-card">
-    <span class="module-icon">🧾</span>
-    <div class="module-title">Tally Sync</div>
-    <div class="module-desc">Sales, GST, Item Mapping, Logs</div>
-    <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
-</a>
+        <!-- Tally Sync Module -->
+        <a href="{% url 'tally_sales_summary' %}" class="module-card">
+            <div>
+                <span class="module-icon">🧾</span>
+                <div class="module-title">Tally Sync</div>
+                <div class="module-desc">Sales, GST, Item Mapping, Logs</div>
+            </div>
+            <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
+        </a>
 
     </div>
 </div>

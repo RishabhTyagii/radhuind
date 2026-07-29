@@ -1,65 +1,199 @@
 {% extends 'hrms/base.html' %}
 
-{% block title %}Employee{% endblock %}
-{% block page_title %}Employee Form{% endblock %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
 
 {% block content %}
+<div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
 
-<div class="bg-white rounded-xl shadow p-8">
+    <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
+        <h2 class="text-xl font-bold text-slate-800">
+            <i class="fa-solid fa-user-plus text-blue-600 mr-2"></i> {{ title }}
+        </h2>
+        <a href="{% url 'employee_list' %}" class="text-slate-600 hover:text-slate-800 text-sm font-medium">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Back to Employee List
+        </a>
+    </div>
 
-<form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" class="space-y-8">
+        {% csrf_token %}
 
-{% csrf_token %}
+        <!-- Section 1: Basic & Personal Info -->
+        <div>
+            <h3 class="text-md font-bold text-slate-700 uppercase tracking-wider mb-4 pb-1 border-b border-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-id-card text-blue-500"></i> Personal & Basic Details
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Employee Code *</label>
+                    {{ form.employee_code }}
+                    {% if form.employee_code.errors %}<p class="text-red-500 text-xs mt-1">{{ form.employee_code.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Full Name *</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}<p class="text-red-500 text-xs mt-1">{{ form.name.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Father's Name</label>
+                    {{ form.father_name }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Mobile Number *</label>
+                    {{ form.mobile }}
+                    {% if form.mobile.errors %}<p class="text-red-500 text-xs mt-1">{{ form.mobile.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Alternate Mobile</label>
+                    {{ form.alternate_mobile }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Photo</label>
+                    {% if employee.photo %}
+                        <div class="mb-2 flex items-center gap-3">
+                            <img src="{{ employee.photo.url }}" class="w-20 h-20 rounded-xl object-cover border-2 border-slate-300 shadow" id="photoPreview">
+                            <div class="text-xs text-slate-500">Current photo<br><span class="text-amber-600 font-semibold">Naya photo select karoge to replace hoga</span></div>
+                        </div>
+                    {% else %}
+                        <div class="mb-2">
+                            <img id="photoPreview" class="w-20 h-20 rounded-xl object-cover border-2 border-dashed border-slate-300 bg-slate-50 hidden">
+                        </div>
+                    {% endif %}
+                    {{ form.photo }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Date of Birth</label>
+                    {{ form.dob }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Date of Joining</label>
+                    {{ form.joining_date }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Status *</label>
+                    {{ form.status }}
+                </div>
+            </div>
+            <div class="mt-4">
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Address</label>
+                {{ form.address }}
+            </div>
+        </div>
 
-<div class="grid md:grid-cols-2 gap-5">
+        <!-- Section 2: Department & Employment Type -->
+        <div>
+            <h3 class="text-md font-bold text-slate-700 uppercase tracking-wider mb-4 pb-1 border-b border-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-briefcase text-purple-500"></i> Department & Job Details
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Department</label>
+                    {{ form.department }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Designation</label>
+                    {{ form.designation }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Employee Type</label>
+                    {{ form.employee_type }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Contractor Name <span class="text-xs font-normal text-slate-400">(If Contractor)</span></label>
+                    {{ form.contractor_name }}
+                </div>
+            </div>
+        </div>
 
-{% for field in form %}
+        <!-- Section 3: Salary & Rates -->
+        <div>
+            <h3 class="text-md font-bold text-slate-700 uppercase tracking-wider mb-4 pb-1 border-b border-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-calculator text-emerald-500"></i> Salary & Hourly Rates
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Basic Salary (₹ / Month)</label>
+                    {{ form.basic_salary }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Hourly Rate (₹ / Hr)</label>
+                    {{ form.hourly_rate }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Overtime Rate (₹ / Hr)</label>
+                    {{ form.overtime_rate }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">PF Deduct %</label>
+                    {{ form.pf_percent }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">ESI Deduct %</label>
+                    {{ form.esi_percent }}
+                </div>
+            </div>
+        </div>
 
-<div>
+        <!-- Section 4: Statutory & Bank Details -->
+        <div>
+            <h3 class="text-md font-bold text-slate-700 uppercase tracking-wider mb-4 pb-1 border-b border-slate-100 flex items-center gap-2">
+                <i class="fa-solid fa-building-columns text-amber-500"></i> Bank & Statutory Details
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Aadhaar Number</label>
+                    {{ form.aadhaar }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">PAN Number</label>
+                    {{ form.pan }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Bank Name</label>
+                    {{ form.bank_name }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Account Number</label>
+                    {{ form.account_number }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">IFSC Code</label>
+                    {{ form.ifsc }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">UAN Number</label>
+                    {{ form.uan }}
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">ESI Number</label>
+                    {{ form.esi_number }}
+                </div>
+            </div>
+        </div>
 
-<label class="block mb-2 font-semibold">
-
-{{ field.label }}
-
-</label>
-
-{{ field }}
-
-{% if field.errors %}
-
-<p class="text-red-600 text-sm mt-1">
-
-{{ field.errors|striptags }}
-
-</p>
-
-{% endif %}
-
+        <div class="flex justify-end gap-3 pt-6 border-t border-slate-200">
+            <a href="{% url 'employee_list' %}" class="px-6 py-2.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium text-sm">Cancel</a>
+            <button type="submit" class="px-8 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow">Save Employee</button>
+        </div>
+    </form>
 </div>
 
-{% endfor %}
-
-</div>
-
-<div class="mt-8">
-
-<button class="bg-blue-700 text-white px-8 py-3 rounded">
-
-Save Employee
-
-</button>
-
-<a href="{% url 'employee_list' %}"
-class="bg-gray-600 text-white px-8 py-3 rounded">
-
-Cancel
-
-</a>
-
-</div>
-
-</form>
-
-</div>
-
+<script>
+    // Photo live preview
+    const photoInput = document.getElementById("id_photo");
+    const photoPreview = document.getElementById("photoPreview");
+    if (photoInput && photoPreview) {
+        photoInput.addEventListener("change", function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    photoPreview.src = e.target.result;
+                    photoPreview.classList.remove("hidden");
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+</script>
 {% endblock %}

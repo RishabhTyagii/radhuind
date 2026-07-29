@@ -1,98 +1,67 @@
-{% extends "hrms/base.html" %}
+{% extends 'hrms/base.html' %}
 
 {% block title %}Generate Salary{% endblock %}
-{% block page_title %}Generate Salary{% endblock %}
+{% block page_title %}Monthly Salary Calculation Engine{% endblock %}
 
 {% block content %}
+<div class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8">
+    <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-200">
+        <h2 class="text-xl font-bold text-slate-800">
+            <i class="fa-solid fa-calculator text-rose-600 mr-2"></i> Salary Generator
+        </h2>
+        <a href="{% url 'salary_list' %}" class="text-slate-600 hover:text-slate-800 text-sm font-medium">
+            <i class="fa-solid fa-list mr-1"></i> Salary History
+        </a>
+    </div>
 
-<div class="bg-white rounded-xl shadow p-8">
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
 
-<form method="post">
+        <div class="space-y-4">
+            <!-- Employee -->
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Select Employee <span class="text-red-500">*</span></label>
+                <select id="id_employee" name="employee" class="w-full border rounded-lg p-2.5 bg-slate-50 border-slate-300 text-sm focus:ring-2 focus:ring-blue-500" required>
+                    <option value="">-- Employee Name ya Code type karo --</option>
+                    {% for emp in employees %}
+                        <option value="{{ emp.id }}">
+                            {{ emp.employee_code }} - {{ emp.name }} ({% if emp.department %}{{ emp.department.name }}{% else %}No Dept{% endif %})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
 
-{% csrf_token %}
+            <!-- Month & Year Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Month <span class="text-red-500">*</span></label>
+                    <select name="month" class="w-full border rounded-lg p-2.5 bg-slate-50 border-slate-300 text-sm" required>
+                        {% for num, name in months %}
+                            <option value="{{ num }}" {% if num == today.month %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Year <span class="text-red-500">*</span></label>
+                    <input type="number" name="year" value="{{ today.year }}" class="w-full border rounded-lg p-2.5 bg-slate-50 border-slate-300 text-sm" required>
+                </div>
+            </div>
+        </div>
 
-<div class="grid md:grid-cols-3 gap-5">
+        <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 space-y-1">
+            <div class="font-bold text-slate-700 mb-1"><i class="fa-solid fa-circle-info mr-1 text-blue-500"></i> Salary Calculation Logic:</div>
+            <div>• <strong>Basic Payable:</strong> (Basic Salary / Days in Month) × (Present Days + 0.5 × Half Days)</div>
+            <div>• <strong>Overtime:</strong> OT Hours × Overtime Rate</div>
+            <div>• <strong>Production Pay:</strong> Sum of piece-rate items produced in selected month</div>
+            <div>• <strong>Net Salary:</strong> Basic + OT + Production + Bonus - Advances - Deductions - PF - ESI</div>
+        </div>
 
-<div>
-
-<label class="font-semibold block mb-2">
-
-Employee
-
-</label>
-
-<select name="employee" class="w-full border rounded p-2">
-
-{% for emp in employees %}
-
-<option value="{{ emp.id }}">
-
-{{ emp.employee_code }} - {{ emp.name }}
-
-</option>
-
-{% endfor %}
-
-</select>
-
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-200">
+            <a href="{% url 'salary_list' %}" class="px-6 py-2.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium text-sm">Cancel</a>
+            <button type="submit" class="px-8 py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-medium text-sm shadow">
+                <i class="fa-solid fa-gears mr-1"></i> Calculate & Generate Payslip
+            </button>
+        </div>
+    </form>
 </div>
-
-<div>
-
-<label class="font-semibold block mb-2">
-
-Month
-
-</label>
-
-<select name="month" class="w-full border rounded p-2">
-
-<option value="1">January</option>
-<option value="2">February</option>
-<option value="3">March</option>
-<option value="4">April</option>
-<option value="5">May</option>
-<option value="6">June</option>
-<option value="7">July</option>
-<option value="8">August</option>
-<option value="9">September</option>
-<option value="10">October</option>
-<option value="11">November</option>
-<option value="12">December</option>
-
-</select>
-
-</div>
-
-<div>
-
-<label class="font-semibold block mb-2">
-
-Year
-
-</label>
-
-<input type="number"
-name="year"
-value="2026"
-class="w-full border rounded p-2">
-
-</div>
-
-</div>
-
-<div class="mt-8">
-
-<button class="bg-blue-700 text-white px-8 py-3 rounded">
-
-Generate Salary
-
-</button>
-
-</div>
-
-</form>
-
-</div>
-
 {% endblock %}
