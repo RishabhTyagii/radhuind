@@ -10,4 +10,5 @@ urlpatterns = [
     path("entries/", views.entries_log, name="entries_log"),
     path("report/monthly/", views.monthly_report, name="monthly_report"),
     path("report/production-sheet/", views.production_sheet, name="production_sheet"),
+    path("daily-summary/", views.daily_summary, name="daily_summary"),
 ]

@@ -7,7 +7,10 @@ from django.db import transaction
 from django.db.models import Sum, Q
 from django.shortcuts import render, redirect
 
-from .models import TyreItem, DailyEntry, BUCKET_CHOICES
+from .models import TyreItem, DailyEntry, BUCKET_CHOICES, DailyProductionManualEntry
+
+
+
 from .forms import TyreItemForm, ProductionEntryForm, DispatchEntryForm, AdjustmentEntryForm
 
 
@@ -593,3 +596,100 @@ def production_sheet(request):
         "is_date_view": bool(date_str),
     }
     return render(request, "stock/production_sheet.html", context)
+
+
+
+from decimal import Decimal, InvalidOperation
+
+
+def _to_decimal(value):
+    try:
+        return Decimal(str(value or 0))
+    except (InvalidOperation, ValueError):
+        return Decimal("0")
+
+
+COMPOUND_PERCENT = Decimal("0.877")  # Theoretical Total Compound = Theoretical KG x 87.7%
+
+
+@login_required
+def daily_summary(request):
+    today = datetime.date.today()
+
+    if request.method == "POST":
+        entry_date_str = request.POST.get("entry_date", "")
+        from_date_str = request.POST.get("from_date", "")
+        to_date_str = request.POST.get("to_date", "")
+        try:
+            entry_date = datetime.datetime.strptime(entry_date_str, "%Y-%m-%d").date()
+            DailyProductionManualEntry.objects.update_or_create(
+                date=entry_date,
+                defaults={
+                    "parchi_kg": _to_decimal(request.POST.get("parchi_kg")),
+                    "mixing_actual_compound": _to_decimal(request.POST.get("mixing_actual_compound")),
+                    "wastage": _to_decimal(request.POST.get("wastage")),
+                }
+            )
+            messages.success(request, f"{entry_date.strftime('%d-%b-%Y')} ki entry save ho gayi.")
+        except ValueError:
+            messages.error(request, "Date galat format mein aayi, entry save nahi hui.")
+        return redirect(f"{request.path}?from_date={from_date_str}&to_date={to_date_str}")
+
+    from_date_str = request.GET.get("from_date", "").strip()
+    to_date_str = request.GET.get("to_date", "").strip()
+
+    try:
+        from_date = datetime.datetime.strptime(from_date_str, "%Y-%m-%d").date() if from_date_str else today.replace(day=1)
+    except ValueError:
+        from_date = today.replace(day=1)
+    try:
+        to_date = datetime.datetime.strptime(to_date_str, "%Y-%m-%d").date() if to_date_str else today
+    except ValueError:
+        to_date = today
+
+    prod_entries = DailyEntry.objects.filter(
+        entry_type="production", date__gte=from_date, date__lte=to_date
+    ).select_related("tyre_item")
+
+    by_date = {}
+    for e in prod_entries:
+        d = by_date.setdefault(e.date, {"curing": 0, "packing": 0, "theoretical_kg": Decimal("0")})
+        d["curing"] += e.all_curing
+        d["packing"] += e.quantity
+        d["theoretical_kg"] += e.expected_weight
+
+    manual_entries = {
+        m.date: m for m in DailyProductionManualEntry.objects.filter(date__gte=from_date, date__lte=to_date)
+    }
+
+    rows = []
+    for d in sorted(by_date.keys(), reverse=True):
+        stats = by_date[d]
+        manual = manual_entries.get(d)
+        parchi_kg = manual.parchi_kg if manual else Decimal("0")
+        mixing_actual = manual.mixing_actual_compound if manual else Decimal("0")
+        wastage = manual.wastage if manual else Decimal("0")
+        theoretical_kg = stats["theoretical_kg"]
+        difference = theoretical_kg - parchi_kg
+        theoretical_total_compound = theoretical_kg * COMPOUND_PERCENT
+        variance = mixing_actual - theoretical_total_compound
+
+        rows.append({
+            "date": d,
+            "curing": stats["curing"],
+            "packing": stats["packing"],
+            "theoretical_kg": round(theoretical_kg, 2),
+            "parchi_kg": parchi_kg,
+            "difference": round(difference, 2),
+            "mixing_actual_compound": mixing_actual,
+            "theoretical_total_compound": round(theoretical_total_compound, 2),
+            "variance": round(variance, 2),
+            "wastage": wastage,
+        })
+
+    context = {
+        "rows": rows,
+        "from_date": from_date.strftime("%Y-%m-%d"),
+        "to_date": to_date.strftime("%Y-%m-%d"),
+    }
+    return render(request, "stock/daily_summary.html", context)

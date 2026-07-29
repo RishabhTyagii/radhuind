@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import TyreItem, DailyEntry 
+from .models import DailyProductionManualEntry, TyreItem, DailyEntry 
 
 
 @admin.register(TyreItem)
@@ -15,3 +15,10 @@ class DailyEntryAdmin(admin.ModelAdmin):
     list_filter = ("entry_type", "bucket", "date")
     search_fields = ("tyre_item__tyre", "remark")
 
+@admin.register(DailyProductionManualEntry)
+class DailyProductionManualEntryAdmin(admin.ModelAdmin):
+    list_display = ("date", "parchi_kg", "mixing_actual_compound", "wastage", "updated_at")
+    list_editable = ("parchi_kg", "mixing_actual_compound", "wastage")
+    ordering = ("-date",)
+    search_fields = ("date",)
+ 

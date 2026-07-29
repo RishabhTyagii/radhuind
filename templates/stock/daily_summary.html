@@ -1,0 +1,79 @@
+{% extends "stock/base.html" %}
+{% block content %}
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+  <h1 class="text-lg font-bold">Daily Production Summary</h1>
+  <form method="get" class="flex gap-2">
+    <input type="date" name="from_date" value="{{ from_date }}" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm">
+    <input type="date" name="to_date" value="{{ to_date }}" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm">
+    <button class="bg-slate-800 text-white rounded-lg px-4 py-1.5 text-sm hover:bg-slate-900">Dekhein</button>
+  </form>
+</div>
+
+<div class="bg-white rounded-xl shadow overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead class="bg-slate-800 text-white">
+      <tr>
+        <th class="text-left px-3 py-2">Date</th>
+        <th class="text-left px-3 py-2">Particulars</th>
+        <th class="text-right px-3 py-2">Curing</th>
+        <th class="text-right px-3 py-2">Packing</th>
+        <th class="text-right px-3 py-2">Theoretical KG</th>
+        <th class="text-right px-3 py-2 bg-amber-700">Parchi KG</th>
+        <th class="text-right px-3 py-2">Difference</th>
+        <th class="text-right px-3 py-2 bg-amber-700">Mixing Actual Compound</th>
+        <th class="text-right px-3 py-2">Theoretical Total Compound (87.7%)</th>
+        <th class="text-right px-3 py-2">Variance</th>
+        <th class="text-right px-3 py-2 bg-amber-700">Wastage</th>
+        <th class="text-center px-3 py-2">Save</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <form method="post" action="">
+          {% csrf_token %}
+          <input type="hidden" name="entry_date" value="{{ row.date|date:'Y-m-d' }}">
+          <input type="hidden" name="from_date" value="{{ from_date }}">
+          <input type="hidden" name="to_date" value="{{ to_date }}">
+
+          <td class="px-3 py-2">{{ row.date|date:"d-M-Y" }}</td>
+          <td class="px-3 py-2">Auto Tyre</td>
+          <td class="px-3 py-2 text-right">{{ row.curing }}</td>
+          <td class="px-3 py-2 text-right">{{ row.packing }}</td>
+          <td class="px-3 py-2 text-right">{{ row.theoretical_kg }}</td>
+          <td class="px-2 py-1 text-right">
+            <input type="number" step="0.01" name="parchi_kg" value="{{ row.parchi_kg }}"
+                   class="w-24 border border-amber-300 rounded px-2 py-1 text-right text-sm">
+          </td>
+          <td class="px-3 py-2 text-right {% if row.difference < 0 %}text-red-600{% else %}text-green-600{% endif %}">
+            {{ row.difference }}
+          </td>
+          <td class="px-2 py-1 text-right">
+            <input type="number" step="0.01" name="mixing_actual_compound" value="{{ row.mixing_actual_compound }}"
+                   class="w-24 border border-amber-300 rounded px-2 py-1 text-right text-sm">
+          </td>
+          <td class="px-3 py-2 text-right">{{ row.theoretical_total_compound }}</td>
+          <td class="px-3 py-2 text-right {% if row.variance < 0 %}text-red-600{% else %}text-green-600{% endif %}">
+            {{ row.variance }}
+          </td>
+          <td class="px-2 py-1 text-right">
+            <input type="number" step="0.01" name="wastage" value="{{ row.wastage }}"
+                   class="w-20 border border-amber-300 rounded px-2 py-1 text-right text-sm">
+          </td>
+          <td class="px-3 py-2 text-center">
+            <button type="submit" class="bg-slate-800 text-white rounded-lg px-3 py-1 text-xs hover:bg-slate-900">Save</button>
+          </td>
+        </form>
+      </tr>
+      {% empty %}
+      <tr><td colspan="12" class="px-3 py-6 text-center text-slate-400">Is date range ke liye koi production entry nahi mili.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<p class="text-xs text-slate-400 mt-3">
+  Amber wale columns (Parchi KG, Mixing Actual Compound, Wastage) manually daalne hain — daal ke us row ka "Save" dabao.
+  Baaki sab (Curing, Packing, Theoretical KG, Difference, Theoretical Total Compound, Variance) khud calculate hote hain.
+</p>
+{% endblock %}

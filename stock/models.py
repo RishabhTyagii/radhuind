@@ -96,3 +96,27 @@ class DailyEntry(models.Model):
         if self.actual_weight is None:
             return None
         return self.actual_weight - self.expected_weight
+
+class DailyProductionManualEntry(models.Model):
+    """Manual ground-truth values entered once per day — these are NOT
+    computed from DailyEntry, they're typed in by the user each day."""
+    date = models.DateField(unique=True)
+    parchi_kg = models.DecimalField(
+        "Parchi KG", max_digits=10, decimal_places=2, default=0,
+        help_text="Ground se aayi us din ki actual packing weight (parchi)"
+    )
+    mixing_actual_compound = models.DecimalField(
+        "Mixing Actual Compound", max_digits=10, decimal_places=2, default=0,
+        help_text="Bahar (mixing section) se aayi actual compound quantity"
+    )
+    wastage = models.DecimalField(
+        "Wastage", max_digits=10, decimal_places=2, default=0,
+        help_text="Us din ki wastage, bahar se manually daali jaati hai"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"Manual entry - {self.date}"
