@@ -158,6 +158,27 @@
         border-color: #cbd5e1;
     }
 
+    /* Small inline "View" link next to a bill number */
+    .btn-view {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: 8px;
+        padding: 3px 10px;
+        border-radius: 6px;
+        background: #eff6ff;
+        color: #2563eb;
+        font-size: 11px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+    }
+    .btn-view:hover {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
     /* Table Container - Clean */
     .table-container {
         background: #ffffff;
@@ -465,7 +486,14 @@
                                 <span class="text-xs text-slate-400">({{ e.weight_variance|stringformat:"+.2f" }})</span>
                             {% else %}-{% endif %}
                         </td>
-                        <td>{{ e.bill_number|default:"-" }}</td>
+                        <td>
+                            {{ e.bill_number|default:"-" }}
+                            {% if e.tally_invoice_pk %}
+                            <a href="{% url 'tally_invoice_detail' e.tally_invoice_pk %}" class="btn-view">
+                                <i class="fas fa-eye mr-1"></i> View
+                            </a>
+                            {% endif %}
+                        </td>
                         <td>
                             <span class="user-badge">
                                 <i class="fas fa-user-circle"></i>

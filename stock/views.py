@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect
 
 from .models import TyreItem, DailyEntry, BUCKET_CHOICES, DailyProductionManualEntry
 
-
+from tallysync.models import TallyInvoice
 
 from .forms import TyreItemForm, ProductionEntryForm, DispatchEntryForm, AdjustmentEntryForm
 
@@ -249,11 +249,17 @@ def entries_log(request):
 
     entries = entries[:500]
 
+    entries = list(entries)  # NEW: evaluate once so the loop below doesn't re-query
+    bill_numbers = [e.bill_number for e in entries if e.bill_number]
+    invoice_map = {
+        inv.voucher_number: inv.pk
+        for inv in TallyInvoice.objects.filter(voucher_number__in=bill_numbers)
+    }
+    for e in entries:
+        e.tally_invoice_pk = invoice_map.get(e.bill_number)
+
     context = {
         "entries": entries,
-        "date_str": date_str,
-        "month_str": month_str,
-        "entry_type": entry_type,
     }
     return render(request, "stock/entries_log.html", context)
 
