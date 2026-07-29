@@ -1,0 +1,58 @@
+{% extends "hrms/base.html" %}
+
+{% block title %}Attendance{% endblock %}
+{% block page_title %}Attendance Entry{% endblock %}
+
+{% block content %}
+
+<div class="bg-white rounded-xl shadow p-8">
+
+<form method="post">
+
+{% csrf_token %}
+
+<div class="grid md:grid-cols-2 gap-5">
+
+{% for field in form %}
+
+<div>
+
+<label class="font-semibold block mb-2">
+
+{{ field.label }}
+
+</label>
+
+{{ field }}
+
+{% if field.errors %}
+
+<p class="text-red-600">
+
+{{ field.errors }}
+
+</p>
+
+{% endif %}
+
+</div>
+
+{% endfor %}
+
+</div>
+
+<div class="mt-6">
+
+<button class="bg-blue-700 text-white px-8 py-3 rounded">
+
+Save Attendance
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends "hrms/base.html" %}
+
+{% block title %}Production{% endblock %}
+{% block page_title %}Production Register{% endblock %}
+
+{% block content %}
+
+<div class="bg-white rounded-xl shadow p-6">
+
+<div class="flex justify-between mb-5">
+
+<form method="get">
+
+<input
+type="text"
+name="search"
+placeholder="Employee"
+value="{{ search }}"
+class="border rounded px-4 py-2">
+
+<button class="bg-blue-600 text-white px-5 py-2 rounded">
+
+Search
+
+</button>
+
+</form>
+
+<a href="{% url 'production_add' %}"
+class="bg-green-600 text-white px-5 py-2 rounded">
+
++ Production
+
+</a>
+
+</div>
+
+<div class="grid md:grid-cols-2 gap-5 mb-5">
+
+<div class="bg-blue-100 rounded p-5">
+
+<h3>Total Qty</h3>
+
+<h1 class="text-3xl font-bold">
+
+{{ total_qty }}
+
+</h1>
+
+</div>
+
+<div class="bg-green-100 rounded p-5">
+
+<h3>Total Amount</h3>
+
+<h1 class="text-3xl font-bold">
+
+₹ {{ total_amount }}
+
+</h1>
+
+</div>
+
+</div>
+
+<table class="w-full">
+
+<thead class="bg-gray-100">
+
+<tr>
+
+<th>Date</th>
+
+<th>Employee</th>
+
+<th>Product</th>
+
+<th>Qty</th>
+
+<th>Rate</th>
+
+<th>Total</th>
+
+<th>Action</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for row in production %}
+
+<tr class="border-b">
+
+<td>{{ row.date }}</td>
+
+<td>{{ row.employee }}</td>
+
+<td>{{ row.product_name }}</td>
+
+<td>{{ row.quantity }}</td>
+
+<td>{{ row.rate }}</td>
+
+<td>{{ row.total_amount }}</td>
+
+<td>
+
+<a href="{% url 'production_edit' row.id %}">
+
+Edit
+
+</a>
+
+|
+
+<a href="{% url 'production_delete' row.id %}">
+
+Delete
+
+</a>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="7" class="text-center p-5">
+
+No Production
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

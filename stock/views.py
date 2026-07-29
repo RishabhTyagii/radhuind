@@ -662,7 +662,7 @@ def daily_summary(request):
         d = by_date.setdefault(e.date, {"curing": 0, "packing": 0, "theoretical_kg": Decimal("0")})
         d["curing"] += e.all_curing
         d["packing"] += e.quantity
-        d["theoretical_kg"] += e.expected_weight
+        d["theoretical_kg"] += e.all_curing * e.tyre_item.weight
 
     manual_entries = {
         m.date: m for m in DailyProductionManualEntry.objects.filter(date__gte=from_date, date__lte=to_date)

@@ -1,0 +1,107 @@
+{% extends "hrms/base.html" %}
+
+{% block title %}Salary{% endblock %}
+{% block page_title %}Salary Register{% endblock %}
+
+{% block content %}
+
+<div class="bg-white rounded-xl shadow p-6">
+
+<div class="flex justify-end mb-5">
+
+<a href="{% url 'generate_salary' %}"
+class="bg-green-600 text-white px-5 py-2 rounded">
+
+Generate Salary
+
+</a>
+
+</div>
+
+<table class="w-full">
+
+<thead class="bg-gray-100">
+
+<tr>
+
+<th>Employee</th>
+
+<th>Month</th>
+
+<th>Year</th>
+
+<th>Basic</th>
+
+<th>Production</th>
+
+<th>OT</th>
+
+<th>Net Salary</th>
+
+<th></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for s in salaries %}
+
+<tr class="border-b">
+
+<td>{{ s.employee }}</td>
+
+<td>{{ s.month }}</td>
+
+<td>{{ s.year }}</td>
+
+<td>{{ s.basic_salary }}</td>
+
+<td>{{ s.production_amount }}</td>
+
+<td>{{ s.overtime_amount }}</td>
+
+<td>
+
+<b>
+
+₹ {{ s.net_salary }}
+
+</b>
+
+</td>
+
+<td>
+
+<a href="{% url 'salary_slip' s.id %}">
+
+Slip
+
+</a>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="8" class="text-center p-5">
+
+No Salary Generated
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

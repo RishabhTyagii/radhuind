@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.views.decorators.cache import never_cache
 from django.conf import settings
 
+
 @never_cache
 def service_worker(request):
     sw_path = settings.BASE_DIR / 'static' / 'service-worker.js'
@@ -25,6 +26,7 @@ urlpatterns = [
     path('cycletyre/', include('cycletyres.urls')),
     path('tallysync/', include('tallysync.urls')),
     path('service-worker.js', service_worker, name='service_worker'),
+    path("hr/", include("hrms.urls")),
 ]
 
 

@@ -1,0 +1,75 @@
+{% extends 'hrms/base.html' %}
+
+{% block title %}HRMS Dashboard{% endblock %}
+{% block page_title %}HRMS Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+
+    <div class="bg-white rounded-xl shadow p-6">
+        <h5 class="text-gray-500">Employees</h5>
+        <h2 class="text-4xl font-bold mt-3 text-blue-700">
+            {{ total_employee }}
+        </h2>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-6">
+        <h5 class="text-gray-500">Departments</h5>
+        <h2 class="text-4xl font-bold mt-3 text-green-700">
+            {{ total_department }}
+        </h2>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-6">
+        <h5 class="text-gray-500">Attendance</h5>
+        <h2 class="text-4xl font-bold mt-3 text-orange-700">
+            {{ today_attendance }}
+        </h2>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-6">
+        <h5 class="text-gray-500">Production</h5>
+        <h2 class="text-4xl font-bold mt-3 text-purple-700">
+            {{ today_production }}
+        </h2>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-6">
+        <h5 class="text-gray-500">Salary</h5>
+        <h2 class="text-3xl font-bold mt-3 text-red-700">
+            ₹ {{ total_salary }}
+        </h2>
+    </div>
+
+</div>
+
+<div class="mt-8 bg-white rounded-xl shadow p-6">
+
+    <h3 class="text-xl font-semibold mb-5">
+        Quick Menu
+    </h3>
+
+    <div class="grid md:grid-cols-4 gap-4">
+
+        <a href="{% url 'employee_list' %}" class="bg-blue-600 text-white p-5 rounded-lg text-center">
+            Employees
+        </a>
+
+        <a href="{% url 'attendance_list' %}" class="bg-green-600 text-white p-5 rounded-lg text-center">
+            Attendance
+        </a>
+
+        <a href="{% url 'production_list' %}" class="bg-purple-600 text-white p-5 rounded-lg text-center">
+            Production
+        </a>
+
+        <a href="{% url 'salary_list' %}" class="bg-red-600 text-white p-5 rounded-lg text-center">
+            Salary
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rawmaterials',
     "cycletyres",
     'tallysync',
+    "hrms.apps.HrmsConfig",
 ]
 
 MIDDLEWARE = [

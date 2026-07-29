@@ -1,0 +1,114 @@
+{% extends "hrms/base.html" %}
+
+{% block title %}Salary Slip{% endblock %}
+{% block page_title %}Salary Slip{% endblock %}
+
+{% block content %}
+
+<div class="bg-white shadow rounded-xl p-8">
+
+<h2 class="text-2xl font-bold mb-6">
+
+Salary Slip
+
+</h2>
+
+<table class="w-full">
+
+<tr>
+
+<td>Employee</td>
+
+<td>{{ salary.employee.name }}</td>
+
+</tr>
+
+<tr>
+
+<td>Month</td>
+
+<td>{{ salary.month }}/{{ salary.year }}</td>
+
+</tr>
+
+<tr>
+
+<td>Basic Salary</td>
+
+<td>{{ salary.basic_salary }}</td>
+
+</tr>
+
+<tr>
+
+<td>Production</td>
+
+<td>{{ salary.production_amount }}</td>
+
+</tr>
+
+<tr>
+
+<td>OT</td>
+
+<td>{{ salary.overtime_amount }}</td>
+
+</tr>
+
+<tr>
+
+<td>Bonus</td>
+
+<td>{{ salary.bonus }}</td>
+
+</tr>
+
+<tr>
+
+<td>Advance</td>
+
+<td>- {{ salary.advance }}</td>
+
+</tr>
+
+<tr>
+
+<td>Deduction</td>
+
+<td>- {{ salary.deduction }}</td>
+
+</tr>
+
+<tr>
+
+<td>PF</td>
+
+<td>- {{ salary.pf_amount }}</td>
+
+</tr>
+
+<tr>
+
+<td>ESI</td>
+
+<td>- {{ salary.esi_amount }}</td>
+
+</tr>
+
+<tr class="font-bold text-xl">
+
+<td>Net Salary</td>
+
+<td>
+
+₹ {{ salary.net_salary }}
+
+</td>
+
+</tr>
+
+</table>
+
+</div>
+
+{% endblock %}

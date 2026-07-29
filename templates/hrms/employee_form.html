@@ -1,0 +1,65 @@
+{% extends 'hrms/base.html' %}
+
+{% block title %}Employee{% endblock %}
+{% block page_title %}Employee Form{% endblock %}
+
+{% block content %}
+
+<div class="bg-white rounded-xl shadow p-8">
+
+<form method="post" enctype="multipart/form-data">
+
+{% csrf_token %}
+
+<div class="grid md:grid-cols-2 gap-5">
+
+{% for field in form %}
+
+<div>
+
+<label class="block mb-2 font-semibold">
+
+{{ field.label }}
+
+</label>
+
+{{ field }}
+
+{% if field.errors %}
+
+<p class="text-red-600 text-sm mt-1">
+
+{{ field.errors|striptags }}
+
+</p>
+
+{% endif %}
+
+</div>
+
+{% endfor %}
+
+</div>
+
+<div class="mt-8">
+
+<button class="bg-blue-700 text-white px-8 py-3 rounded">
+
+Save Employee
+
+</button>
+
+<a href="{% url 'employee_list' %}"
+class="bg-gray-600 text-white px-8 py-3 rounded">
+
+Cancel
+
+</a>
+
+</div>
+
+</form>
+
+</div>
+
+{% endblock %}

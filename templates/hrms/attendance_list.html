@@ -1,0 +1,160 @@
+{% extends "hrms/base.html" %}
+
+{% block title %}Attendance{% endblock %}
+{% block page_title %}Attendance Register{% endblock %}
+
+{% block content %}
+
+<div class="bg-white rounded-xl shadow p-6">
+
+<div class="flex justify-between mb-5">
+
+<form method="get" class="flex gap-3">
+
+<input type="text"
+name="search"
+value="{{ search }}"
+placeholder="Employee Name"
+class="border rounded px-4 py-2">
+
+<input type="date"
+name="date"
+value="{{ date }}"
+class="border rounded px-4 py-2">
+
+<button class="bg-blue-600 text-white px-5 rounded">
+
+Search
+
+</button>
+
+</form>
+
+<a href="{% url 'attendance_add' %}"
+class="bg-green-600 text-white px-5 py-2 rounded">
+
++ Attendance
+
+</a>
+
+</div>
+
+<div class="overflow-auto">
+
+<table class="w-full">
+
+<thead class="bg-gray-100">
+
+<tr>
+
+<th class="p-3">Date</th>
+
+<th>Employee</th>
+
+<th>IN</th>
+
+<th>OUT</th>
+
+<th>Hours</th>
+
+<th>OT</th>
+
+<th>Status</th>
+
+<th>Action</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for row in attendance %}
+
+<tr class="border-b">
+
+<td class="p-3">
+
+{{ row.date }}
+
+</td>
+
+<td>
+
+{{ row.employee }}
+
+</td>
+
+<td>
+
+{{ row.in_time }}
+
+</td>
+
+<td>
+
+{{ row.out_time }}
+
+</td>
+
+<td>
+
+{{ row.working_hours }}
+
+</td>
+
+<td>
+
+{{ row.overtime_hours }}
+
+</td>
+
+<td>
+
+{{ row.status }}
+
+</td>
+
+<td>
+
+<a href="{% url 'attendance_edit' row.id %}">
+
+Edit
+
+</a>
+
+|
+
+<a href="{% url 'attendance_delete' row.id %}">
+
+Delete
+
+</a>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="8" class="text-center p-5">
+
+No Attendance
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+{% endblock %}
