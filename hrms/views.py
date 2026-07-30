@@ -10,7 +10,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 
 from .models import (
     Department, Employee, Attendance, Production,
-    Salary, Advance, Bonus, Deduction, LeaveBalance,
+    Salary, Advance, Bonus, Deduction, LeaveBalance, ATTENDANCE_STATUS,
 )
 from .forms import (
     DepartmentForm, EmployeeForm, AttendanceForm,
@@ -440,6 +440,79 @@ def attendance_delete(request, pk):
     att.delete()
     messages.success(request, "Attendance deleted.")
     return redirect("attendance_list")
+
+
+@login_required
+def bulk_attendance(request):
+    selected_date_str = request.GET.get("date") or request.POST.get("date") or str(date.today())
+    try:
+        selected_date = datetime.strptime(selected_date_str, "%Y-%m-%d").date()
+    except ValueError:
+        selected_date = date.today()
+        selected_date_str = str(selected_date)
+
+    dept_id = request.GET.get("department", "")
+
+    employees = Employee.objects.filter(status="Active").select_related("department").order_by("department__name", "name")
+    if dept_id:
+        employees = employees.filter(department_id=dept_id)
+
+    if request.method == "POST":
+        saved_count = 0
+        for emp in employees:
+            status_val = request.POST.get(f"status_{emp.id}")
+            hrs_val = request.POST.get(f"hrs_{emp.id}", "").strip()
+            remarks_val = request.POST.get(f"remarks_{emp.id}", "").strip()
+
+            if status_val:
+                try:
+                    work_hrs = Decimal(hrs_val) if hrs_val != "" else (Decimal("8") if status_val == "Present" else (Decimal("4") if status_val == "Half Day" else Decimal("0")))
+                except Exception:
+                    work_hrs = Decimal("8") if status_val == "Present" else Decimal("0")
+
+                ot_hrs = max(Decimal("0"), work_hrs - Decimal("8"))
+
+                att, created = Attendance.objects.update_or_create(
+                    employee=emp,
+                    date=selected_date,
+                    defaults={
+                        "status": status_val,
+                        "working_hours": work_hrs,
+                        "overtime_hours": ot_hrs,
+                        "remarks": remarks_val,
+                        "created_by": request.user,
+                    }
+                )
+                saved_count += 1
+
+        messages.success(request, f"Bulk attendance saved for {saved_count} employee(s) on {selected_date_str}.")
+        return redirect(f"{request.path}?date={selected_date_str}&department={dept_id}")
+
+    # Pre-populate existing attendance data for selected_date
+    existing_att = Attendance.objects.filter(date=selected_date, employee__in=employees)
+    att_map = {a.employee_id: a for a in existing_att}
+
+    emp_data = []
+    for emp in employees:
+        att = att_map.get(emp.id)
+        emp_data.append({
+            "employee": emp,
+            "status": att.status if att else "Present",
+            "working_hours": att.working_hours if att else Decimal("8.00"),
+            "overtime_hours": att.overtime_hours if att else Decimal("0.00"),
+            "remarks": att.remarks if att else "",
+            "is_marked": att is not None,
+        })
+
+    context = {
+        "selected_date": selected_date_str,
+        "dept_id": dept_id,
+        "departments": Department.objects.all(),
+        "emp_data": emp_data,
+        "status_choices": ATTENDANCE_STATUS,
+    }
+    return render(request, "hrms/bulk_attendance.html", context)
+
 
 
 # =====================================================

@@ -93,6 +93,12 @@ urlpatterns = [
     ),
 
     path(
+        "attendance/bulk/",
+        views.bulk_attendance,
+        name="bulk_attendance",
+    ),
+
+    path(
         "attendance/<int:pk>/edit/",
         views.attendance_edit,
         name="attendance_edit",

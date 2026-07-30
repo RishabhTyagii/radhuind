@@ -276,21 +276,66 @@
 
             <form method="post" class="space-y-4">
                 {% csrf_token %}
-                {% for field in form %}
+
+                <!-- Tube Item -->
                 <div>
                     <label class="form-label">
-                        <i class="fas {% if 'tube' in field.name %}fa-bicycle{% elif 'quantity' in field.name %}fa-hashtag{% else %}fa-tag{% endif %}"></i>
-                        {{ field.label }}
+                        <i class="fas fa-bicycle"></i> {{ form.tube_item.label }}
                     </label>
-                    {{ field }}
-                    {% if field.errors %}
-                    <p class="error-text">
-                        <i class="fas fa-exclamation-circle"></i>
-                        {{ field.errors.0 }}
-                    </p>
-                    {% endif %}
+                    {{ form.tube_item }}
+                    {% if form.tube_item.errors %}<p class="error-text"><i class="fas fa-exclamation-circle"></i> {{ form.tube_item.errors.0 }}</p>{% endif %}
                 </div>
-                {% endfor %}
+
+                <!-- Date -->
+                <div>
+                    <label class="form-label">
+                        <i class="fas fa-calendar"></i> {{ form.date.label }}
+                    </label>
+                    {{ form.date }}
+                    {% if form.date.errors %}<p class="error-text"><i class="fas fa-exclamation-circle"></i> {{ form.date.errors.0 }}</p>{% endif %}
+                </div>
+
+                <!-- Quantity -->
+                <div>
+                    <label class="form-label">
+                        <i class="fas fa-hashtag"></i> {{ form.quantity.label }}
+                    </label>
+                    {{ form.quantity }}
+                    {% if form.quantity.errors %}<p class="error-text"><i class="fas fa-exclamation-circle"></i> {{ form.quantity.errors.0 }}</p>{% endif %}
+                </div>
+
+                <!-- Tube Quality (Radio) -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <label class="block text-sm font-bold text-slate-700 mb-3">
+                        <i class="fas fa-tags text-emerald-600 mr-1"></i>
+                        Tube Quality
+                        <span class="text-xs font-normal text-slate-400 ml-1">(Filter ke liye kaam aayega)</span>
+                    </label>
+                    <div class="flex gap-4 flex-wrap">
+                        {% for choice_val, choice_label in form.tube_quality.field.choices %}
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="tube_quality" value="{{ choice_val }}"
+                                {% if form.tube_quality.value == choice_val or not form.tube_quality.value and choice_val == 'normal' %}checked{% endif %}
+                                class="accent-emerald-600 w-4 h-4">
+                            <span class="text-sm font-semibold
+                                {% if choice_val == 'normal' %}text-slate-700
+                                {% elif choice_val == 'molded' %}text-blue-700
+                                {% else %}text-amber-700{% endif %}">
+                                {% if choice_val == 'normal' %}🟢{% elif choice_val == 'molded' %}🔵{% else %}🟡{% endif %}
+                                {{ choice_label }}
+                            </span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Remark -->
+                <div>
+                    <label class="form-label">
+                        <i class="fas fa-tag"></i> {{ form.remark.label }}
+                    </label>
+                    {{ form.remark }}
+                </div>
 
                 <button type="submit" class="submit-btn">
                     <i class="fas fa-plus-circle mr-2"></i>
@@ -298,6 +343,7 @@
                 </button>
             </form>
         </div>
+
 
         <!-- Recent Entries -->
         <div class="production-card">

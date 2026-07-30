@@ -308,9 +308,9 @@
           <td style="color:#64748b; font-size:13px;">{{ p.created_at|date:"d-M-Y H:i" }}</td>
           <td>
             {% if p.reason == "unmapped" %}
-            <form method="post" action="{% url 'tally_map_pending_item' p.pk %}" class="flex items-center gap-1.5" style="min-width:220px;">
+            <form method="post" action="{% url 'tally_map_pending_item' p.pk %}" class="flex items-center gap-1.5 flex-wrap" style="min-width:340px;">
               {% csrf_token %}
-              <select name="item_choice" required class="border border-slate-300 rounded-lg px-2 py-1 text-xs" style="max-width:170px;">
+              <select name="item_choice" required class="border border-slate-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-purple-500" style="max-width:160px;">
                 <option value="">-- Select item --</option>
                 <optgroup label="Auto Tyre">
                   {% for item in tyre_items %}
@@ -328,7 +328,15 @@
                   {% endfor %}
                 </optgroup>
               </select>
-              <button type="submit" class="bg-purple-600 text-white text-xs font-medium px-2.5 py-1 rounded-lg hover:bg-purple-700 whitespace-nowrap">Map &amp; Sync</button>
+
+              <select name="mapping_type" class="border border-slate-300 rounded-lg px-2 py-1 text-xs bg-slate-50 font-medium">
+                <option value="permanent">📌 Permanent Map</option>
+                <option value="one_time">⚡ This Time Only</option>
+              </select>
+
+              <button type="submit" class="bg-purple-600 text-white text-xs font-semibold px-2.5 py-1 rounded-lg hover:bg-purple-700 whitespace-nowrap shadow-sm">
+                Sync / Resolve
+              </button>
             </form>
             {% else %}
             <a href="{% url 'tally_retry_single_pending' p.pk %}"

@@ -1,0 +1,318 @@
+{% extends "cycletube/base.html" %}
+{% block title %}Cycle Tube – Production Summary{% endblock %}
+{% block content %}
+
+<style>
+/* Summary page styles */
+.summary-table th, .summary-table td {
+    padding: 10px 12px;
+    white-space: nowrap;
+    font-size: 13px;
+    border-bottom: 1px solid #e2e8f0;
+}
+.summary-table thead tr:first-child th {
+    background: #1e293b;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+.summary-table thead tr.sub-head th {
+    background: #334155;
+    color: #cbd5e1;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.summary-table tbody tr:hover { background: #f8fafc; }
+.summary-table tfoot td {
+    background: #fef3c7;
+    font-weight: 700;
+    font-size: 13px;
+    border-top: 2px solid #f59e0b;
+}
+.pos { color: #16a34a; font-weight: 600; }
+.neg { color: #dc2626; font-weight: 600; }
+.zero { color: #64748b; }
+
+/* Section headers */
+.col-group-tube  { background: #0f766e !important; }  /* teal */
+.col-group-comp  { background: #1d4ed8 !important; }  /* blue */
+.col-group-mix   { background: #7c3aed !important; }  /* purple */
+.col-group-waste { background: #b45309 !important; }  /* amber */
+
+/* Manual entry panel */
+.manual-panel {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+.manual-panel-header {
+    background: linear-gradient(135deg, #1e293b, #334155);
+    padding: 16px 20px;
+    color: white;
+}
+.manual-field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+</style>
+
+<div class="space-y-6">
+
+    <!-- Page Header -->
+    <div class="bg-white rounded-2xl shadow p-5 flex flex-wrap items-center justify-between gap-4 border border-slate-100">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-2xl">🧲</div>
+            <div>
+                <h1 class="text-xl font-black text-slate-800">Cycle Tube — Production Summary</h1>
+                <p class="text-xs text-slate-500">Excel sheet jaisi daily summary — auto-calculated + manual entry</p>
+            </div>
+        </div>
+        <!-- Export + Date Filter -->
+        <form method="get" class="flex flex-wrap gap-2 items-end">
+            <div class="flex flex-col">
+                <label class="text-xs text-slate-500 mb-1">From</label>
+                <input type="date" name="from_date" value="{{ from_date }}"
+                       class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+            </div>
+            <div class="flex flex-col">
+                <label class="text-xs text-slate-500 mb-1">To</label>
+                <input type="date" name="to_date" value="{{ to_date }}"
+                       class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
+            </div>
+            <button type="submit"
+                    class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-sm font-semibold shadow transition-all">
+                <i class="fas fa-filter mr-1"></i> Filter
+            </button>
+            <a href="?from_date={{ from_date }}&to_date={{ to_date }}&export=excel"
+               class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold shadow flex items-center gap-1.5 transition-all">
+                <i class="fas fa-file-excel"></i> Export Excel
+            </a>
+        </form>
+    </div>
+
+    <!-- Main Grid: Table + Manual Entry Panel -->
+    <div class="grid xl:grid-cols-3 gap-6">
+
+        <!-- === Summary Table === -->
+        <div class="xl:col-span-2 bg-white rounded-2xl shadow overflow-hidden border border-slate-100">
+            <div class="overflow-x-auto">
+                <table class="summary-table w-full border-collapse">
+                    <thead>
+                        <!-- Group Header Row -->
+                        <tr>
+                            <th rowspan="2" class="text-left">Date</th>
+                            <th rowspan="2" class="text-right">Prod Pcs</th>
+                            <th rowspan="2" class="text-right">Valve Body</th>
+
+                            <!-- Tube weight group -->
+                            <th colspan="4" class="text-center col-group-tube">— Tube Weight (Kgs) —</th>
+
+                            <!-- Compound consumption group -->
+                            <th colspan="3" class="text-center col-group-comp">— Compound Consumption —</th>
+
+                            <!-- Mixing group -->
+                            <th colspan="2" class="text-center col-group-mix">— Actual Mixing —</th>
+
+                            <!-- Wastage group -->
+                            <th colspan="4" class="text-center col-group-waste">— Wastage in Tube Production —</th>
+                        </tr>
+                        <!-- Sub-head row -->
+                        <tr class="sub-head">
+                            <th class="text-right">Target wt</th>
+                            <th class="text-right">Actual Gross</th>
+                            <th class="text-right">Net-less</th>
+                            <th class="text-right">Variance</th>
+
+                            <th class="text-right">Target Consmpt</th>
+                            <th class="text-right">Actual (-Pck+VB)</th>
+                            <th class="text-right">Variance</th>
+
+                            <th class="text-right">Actual Mixing</th>
+                            <th class="text-right">Variance</th>
+
+                            <th class="text-right">Jali</th>
+                            <th class="text-right">Die Wastage</th>
+                            <th class="text-right">Tube Cutting</th>
+                            <th class="text-right">Total Waste</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                        <tr>
+                            <td class="font-semibold text-slate-700">{{ row.date|date:"d-M-Y" }}</td>
+                            <td class="text-right font-bold text-slate-800">{{ row.production_pcs }}</td>
+                            <td class="text-right text-slate-600">{{ row.valve_body_issued }}</td>
+
+                            <!-- Tube wt group -->
+                            <td class="text-right text-teal-700">{{ row.target_wt }}</td>
+                            <td class="text-right text-slate-700">{{ row.actual_wt_gross }}</td>
+                            <td class="text-right text-slate-600">{{ row.actual_wt_net }}</td>
+                            <td class="text-right {% if row.variance_wt > 0 %}pos{% elif row.variance_wt < 0 %}neg{% else %}zero{% endif %}">
+                                {{ row.variance_wt }}
+                            </td>
+
+                            <!-- Compound group -->
+                            <td class="text-right text-blue-700">{{ row.target_consmpt }}</td>
+                            <td class="text-right text-slate-600">{{ row.actual_comp_net }}</td>
+                            <td class="text-right {% if row.variance_comp > 0 %}pos{% elif row.variance_comp < 0 %}neg{% else %}zero{% endif %}">
+                                {{ row.variance_comp }}
+                            </td>
+
+                            <!-- Mixing group -->
+                            <td class="text-right text-violet-700">{{ row.actual_mixing_compound }}</td>
+                            <td class="text-right {% if row.variance_mixing > 0 %}pos{% elif row.variance_mixing < 0 %}neg{% else %}zero{% endif %}">
+                                {{ row.variance_mixing }}
+                            </td>
+
+                            <!-- Wastage group -->
+                            <td class="text-right text-amber-700">{{ row.jali }}</td>
+                            <td class="text-right text-amber-700">{{ row.die_wastage }}</td>
+                            <td class="text-right text-amber-700">{{ row.tube_cutting }}</td>
+                            <td class="text-right font-bold text-red-700">{{ row.total_tube_waste }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="17" class="py-12 text-center text-slate-400">
+                                <div class="text-4xl mb-2">📊</div>
+                                <div>Is date range mein koi data nahi hai.</div>
+                                <div class="text-xs mt-1">Pehle production entries daalo ya date range change karo.</div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% if rows %}
+                    <tfoot>
+                        <tr>
+                            <td colspan="2" class="font-bold text-slate-800">TOTAL ({{ rows|length }} days)</td>
+                            <td class="text-right">{{ totals.valve_body_issued }}</td>
+
+                            <td class="text-right text-teal-700">{{ totals.target_wt }}</td>
+                            <td class="text-right">{{ totals.actual_wt_gross }}</td>
+                            <td class="text-right">{{ totals.actual_wt_net }}</td>
+                            <td class="text-right {% if totals.variance_wt > 0 %}pos{% elif totals.variance_wt < 0 %}neg{% else %}zero{% endif %}">
+                                {{ totals.variance_wt }}
+                            </td>
+
+                            <td class="text-right text-blue-700">{{ totals.target_consmpt }}</td>
+                            <td class="text-right">{{ totals.actual_comp_net }}</td>
+                            <td class="text-right {% if totals.variance_comp > 0 %}pos{% elif totals.variance_comp < 0 %}neg{% else %}zero{% endif %}">
+                                {{ totals.variance_comp }}
+                            </td>
+
+                            <td class="text-right text-violet-700">{{ totals.actual_mixing_compound }}</td>
+                            <td class="text-right {% if totals.variance_mixing > 0 %}pos{% elif totals.variance_mixing < 0 %}neg{% else %}zero{% endif %}">
+                                {{ totals.variance_mixing }}
+                            </td>
+
+                            <td class="text-right text-amber-700">{{ totals.jali }}</td>
+                            <td class="text-right text-amber-700">{{ totals.die_wastage }}</td>
+                            <td class="text-right text-amber-700">{{ totals.tube_cutting }}</td>
+                            <td class="text-right text-red-700">{{ totals.total_tube_waste }}</td>
+                        </tr>
+                    </tfoot>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+
+        <!-- === Manual Entry Panel === -->
+        <div class="space-y-4">
+
+            <!-- Formula Info Card -->
+            <div class="bg-slate-800 rounded-2xl p-4 text-white text-xs space-y-1.5">
+                <div class="font-bold text-slate-300 uppercase tracking-wider text-xs mb-2">📐 Auto-Calculate Formulas (Excel Match)</div>
+                <div class="flex justify-between"><span class="text-slate-400">Target wt</span><span class="font-mono text-white">SUM(Pcs × Tube Wt)</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Actual Net-less</span><span class="font-mono text-emerald-400">Gross − (Pcs × 0.0075)</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Variance (Wt)</span><span class="font-mono text-blue-400">Net-less − Target wt</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Target Consmpt</span><span class="font-mono text-violet-400">Target wt − (Pcs × 0.015)</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Actual (−Pck+VB)</span><span class="font-mono text-amber-400">Gross − (Pcs × 0.0225)</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Variance (Comp)</span><span class="font-mono text-teal-400">Actual Comp − Target Consmpt</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Variance (Mix)</span><span class="font-mono text-pink-400">Actual Mixing − Target Consmpt</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Total Waste</span><span class="font-mono text-amber-300">Jali + Die + Cutting</span></div>
+            </div>
+
+            <!-- Manual Entry Form -->
+            <div class="manual-panel">
+                <div class="manual-panel-header">
+                    <h2 class="font-bold text-base flex items-center gap-2">
+                        <i class="fas fa-pen-to-square"></i>
+                        Daily Manual Entry
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Date select karo aur manual fields bharo — Save hone par same date update ho jaayega</p>
+                </div>
+
+                <form method="post" class="p-5 space-y-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="from_date" value="{{ from_date }}">
+                    <input type="hidden" name="to_date" value="{{ to_date }}">
+
+                    <!-- Date -->
+                    <div class="manual-field">
+                        <label>📅 Date</label>
+                        {{ manual_form.date }}
+                        {% if manual_form.date.errors %}<p class="text-red-500 text-xs mt-1">{{ manual_form.date.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    <!-- Valve Body -->
+                    <div class="manual-field">
+                        <label>🔩 Valve Body Issued (pcs)</label>
+                        {{ manual_form.valve_body_issued }}
+                    </div>
+
+                    <!-- Actual wt Gross -->
+                    <div class="manual-field">
+                        <label>⚖️ Actual wt kgs (Gross)</label>
+                        {{ manual_form.actual_wt_gross }}
+                    </div>
+
+                    <!-- Actual Mixing Compound -->
+                    <div class="manual-field">
+                        <label>🧪 Actual Mixing Compound (kgs)</label>
+                        {{ manual_form.actual_mixing_compound }}
+                    </div>
+
+                    <!-- Wastage section -->
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
+                        <div class="text-xs font-bold text-amber-800 uppercase tracking-wider">♻️ Wastage in Tube Production</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div class="manual-field">
+                                <label>Jali</label>
+                                {{ manual_form.jali }}
+                            </div>
+                            <div class="manual-field">
+                                <label>Die Wastage</label>
+                                {{ manual_form.die_wastage }}
+                            </div>
+                            <div class="manual-field">
+                                <label>Tube Cutting</label>
+                                {{ manual_form.tube_cutting }}
+                            </div>
+                            <div class="manual-field">
+                                <label>Total Tube Waste</label>
+                                {{ manual_form.total_tube_waste }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit"
+                            class="w-full bg-teal-600 hover:bg-teal-700 text-white py-2.5 rounded-xl font-bold text-sm shadow transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-floppy-disk"></i> Save / Update Entry
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

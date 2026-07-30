@@ -1,0 +1,158 @@
+{% extends 'cycletube/base.html' %}
+{% block content %}
+
+{% with order=order %}
+<div class="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <a href="{% url 'my_orders' %}" class="text-slate-400 hover:text-indigo-600 transition-colors"><i class="fas fa-arrow-left"></i></a>
+            Order #{{ order.id }}
+        </h2>
+        <p class="text-sm text-slate-500 mt-1 ml-8">
+            {{ order.party.name }} &mdash; Placed on {{ order.date|date:"d M Y" }}
+            {% if order.deadline %}
+                &mdash; Deadline: <span class="{% if order.is_overdue %}text-red-600 font-semibold{% else %}text-slate-600{% endif %}">
+                    {{ order.deadline|date:"d M Y" }}{% if order.is_overdue %} ⚠️ Overdue{% endif %}
+                </span>
+            {% endif %}
+        </p>
+    </div>
+    <!-- Status Badge -->
+    <div>
+        {% if order.status == 'pending' %}
+            <span class="px-4 py-2 rounded-full text-sm font-semibold bg-amber-100 text-amber-800 border border-amber-300">🕐 Pending</span>
+        {% elif order.status == 'approved' %}
+            <span class="px-4 py-2 rounded-full text-sm font-semibold bg-blue-100 text-blue-800 border border-blue-300">✅ Approved</span>
+        {% elif order.status == 'dispatched' %}
+            <span class="px-4 py-2 rounded-full text-sm font-semibold bg-indigo-100 text-indigo-800 border border-indigo-300">🚚 Dispatched</span>
+        {% elif order.status == 'completed' %}
+            <span class="px-4 py-2 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">✔ Completed</span>
+        {% elif order.status == 'cancelled' %}
+            <span class="px-4 py-2 rounded-full text-sm font-semibold bg-red-100 text-red-800 border border-red-300">✗ Cancelled</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    <!-- Items Table -->
+    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 bg-slate-50">
+            <h3 class="font-semibold text-slate-800 flex items-center gap-2">
+                <i class="fas fa-list-ul text-indigo-500"></i> Order Items
+            </h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-100">
+                    <tr>
+                        <th class="px-5 py-3 text-left font-semibold">Item</th>
+                        <th class="px-4 py-3 text-center font-semibold">Category</th>
+                        <th class="px-4 py-3 text-center font-semibold">Qty</th>
+                        <th class="px-4 py-3 text-center font-semibold">Stock</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for item in order.items.all %}
+                    <tr class="{% if item.category == 'auto_tyre' %}bg-blue-50/40{% elif item.category == 'cycle_tube' %}bg-emerald-50/40{% else %}bg-violet-50/40{% endif %}">
+                        <td class="px-5 py-3.5 font-medium
+                            {% if item.category == 'auto_tyre' %}text-blue-800{% elif item.category == 'cycle_tube' %}text-emerald-800{% else %}text-violet-800{% endif %}">
+                            {{ item.item_display }}
+                        </td>
+                        <td class="px-4 py-3.5 text-center">
+                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold
+                                {% if item.category == 'auto_tyre' %}bg-blue-100 text-blue-700 border border-blue-200
+                                {% elif item.category == 'cycle_tube' %}bg-emerald-100 text-emerald-700 border border-emerald-200
+                                {% else %}bg-violet-100 text-violet-700 border border-violet-200{% endif %}">
+                                {{ item.get_category_display }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3.5 text-center font-bold text-slate-800 text-base">{{ item.quantity }}</td>
+                        <td class="px-4 py-3.5 text-center font-medium {% if item.item_stock > 0 %}text-emerald-600{% else %}text-rose-500{% endif %}">
+                            {{ item.item_stock }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="px-5 py-8 text-center text-slate-400 italic">No items in this order.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Sidebar: Info + Update Status -->
+    <div class="flex flex-col gap-5">
+
+        <!-- Order Info -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 bg-slate-50">
+                <h3 class="font-semibold text-slate-800 flex items-center gap-2"><i class="fas fa-info-circle text-blue-500"></i> Order Info</h3>
+            </div>
+            <div class="p-5 space-y-3 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Placed by</span>
+                    <span class="font-semibold text-slate-800">{{ order.user.username }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Party</span>
+                    <span class="font-semibold text-slate-800">{{ order.party.name }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Order Date</span>
+                    <span class="font-medium text-slate-700">{{ order.date|date:"d M Y" }}</span>
+                </div>
+                {% if order.deadline %}
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Deadline</span>
+                    <span class="font-medium {% if order.is_overdue %}text-red-600{% else %}text-slate-700{% endif %}">
+                        {{ order.deadline|date:"d M Y" }}{% if order.is_overdue %} ⚠️{% endif %}
+                    </span>
+                </div>
+                {% endif %}
+                {% if order.notes %}
+                <div class="pt-2 border-t border-slate-100">
+                    <span class="text-slate-500 block mb-1">Notes</span>
+                    <p class="text-slate-700 bg-slate-50 rounded-lg px-3 py-2 text-xs leading-relaxed">{{ order.notes }}</p>
+                </div>
+                {% endif %}
+                {% if order.resolved_by %}
+                <div class="pt-2 border-t border-slate-100">
+                    <span class="text-slate-500 block mb-1">Resolved By</span>
+                    <span class="font-medium text-slate-700">{{ order.resolved_by.username }}</span>
+                    <span class="text-xs text-slate-400 block">{{ order.resolved_at|date:"d M Y, h:i A" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Update Status -->
+        {% if order.status not in 'completed,cancelled' %}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 bg-slate-50">
+                <h3 class="font-semibold text-slate-800 flex items-center gap-2"><i class="fas fa-sync-alt text-indigo-500"></i> Update Status</h3>
+            </div>
+            <div class="p-5">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_status">
+                    <select name="status" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 mb-3 shadow-sm">
+                        {% for val, label in status_choices %}
+                            <option value="{{ val }}" {% if order.status == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors shadow-md flex items-center justify-center gap-2">
+                        <i class="fas fa-check"></i> Save Status
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 text-center text-sm text-slate-500 italic">
+            This order is <strong class="text-slate-700">{{ order.get_status_display }}</strong> and cannot be changed.
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endwith %}
+{% endblock %}

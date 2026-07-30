@@ -27,6 +27,8 @@ urlpatterns = [
     path('raw-materials/', include('rawmaterials.urls')),
     path('cycletyre/', include('cycletyres.urls')),
     path('tallysync/', include('tallysync.urls')),
+    path('accounts/', include('accounts.urls')),
+    path('orders/', include('orders.urls')),
     path('service-worker.js', service_worker, name='service_worker'),
     path("hr/", include("hrms.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

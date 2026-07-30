@@ -88,22 +88,6 @@ class TallySyncLog(models.Model):
     
 
 
-
-
-class TallySyncLog(models.Model):
-    invoice = models.ForeignKey(TallyInvoice, on_delete=models.CASCADE, null=True, blank=True, related_name="logs")
-    level = models.CharField(max_length=10, choices=LOG_LEVEL_CHOICES, default="info")
-    message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["-created_at"]
-
-    def __str__(self):
-        return f"[{self.level}] {self.message[:80]}"
-    
-
-
 PENDING_REASON_CHOICES = [
     ("unmapped", "Item Not Mapped"),
     ("insufficient_stock", "Insufficient Stock"),

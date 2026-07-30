@@ -1,0 +1,103 @@
+{% extends 'cycletube/base.html' %}
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+        <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Admin — All Orders</h2>
+        <p class="text-sm text-slate-500 mt-1">Overview of all orders placed by all employees.</p>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+        <h3 class="font-semibold text-slate-800 flex items-center gap-2">
+            <i class="fas fa-list-ul text-indigo-500"></i> All Employee Orders
+        </h3>
+        <span class="text-xs text-slate-400">Click a row to view full order details</span>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+            <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                <tr>
+                    <th class="px-5 py-4 font-semibold">#</th>
+                    <th class="px-5 py-4 font-semibold">Employee</th>
+                    <th class="px-5 py-4 font-semibold">Party</th>
+                    <th class="px-5 py-4 font-semibold">Date</th>
+                    <th class="px-5 py-4 font-semibold">Deadline</th>
+                    <th class="px-5 py-4 font-semibold">Items</th>
+                    <th class="px-5 py-4 font-semibold">Status</th>
+                    <th class="px-5 py-4 font-semibold">Resolved By</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for order in orders %}
+                <tr class="hover:bg-indigo-50/50 transition-colors cursor-pointer" onclick="window.location='{% url 'order_detail' order.id %}'">
+                    <td class="px-5 py-4 font-semibold text-indigo-600">#{{ order.id }}</td>
+                    <td class="px-5 py-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs">{{ order.user.username|make_list|first|upper }}</div>
+                            <span class="font-medium text-slate-700">{{ order.user.username }}</span>
+                        </div>
+                    </td>
+                    <td class="px-5 py-4 font-medium text-slate-800">{{ order.party.name }}</td>
+                    <td class="px-5 py-4 text-slate-500">{{ order.date|date:"d M Y" }}</td>
+                    <td class="px-5 py-4">
+                        {% if order.deadline %}
+                            <span class="{% if order.is_overdue %}text-red-600 font-semibold{% else %}text-slate-500{% endif %}">
+                                {{ order.deadline|date:"d M Y" }}{% if order.is_overdue %} ⚠{% endif %}
+                            </span>
+                        {% else %}
+                            <span class="text-slate-300">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-4 text-slate-600">
+                        <ul class="list-disc pl-4 space-y-0.5 text-xs">
+                            {% for item in order.items.all %}
+                            <li>
+                                <span class="font-medium">{{ item.quantity }}</span> × {{ item.item_display }}
+                                <span class="ml-1 px-1.5 py-0 rounded text-xs
+                                    {% if item.category == 'auto_tyre' %}bg-blue-100 text-blue-600
+                                    {% elif item.category == 'cycle_tube' %}bg-emerald-100 text-emerald-600
+                                    {% else %}bg-violet-100 text-violet-600{% endif %}">
+                                    {{ item.get_category_display }}
+                                </span>
+                            </li>
+                            {% empty %}
+                            <li class="text-slate-400 italic">No items</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td class="px-5 py-4">
+                        {% if order.status == 'pending' %}
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">Pending</span>
+                        {% elif order.status == 'approved' %}
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">Approved</span>
+                        {% elif order.status == 'dispatched' %}
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200">Dispatched</span>
+                        {% elif order.status == 'completed' %}
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">Completed</span>
+                        {% elif order.status == 'cancelled' %}
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">Cancelled</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-4 text-slate-500 text-xs">
+                        {% if order.resolved_by %}
+                            {{ order.resolved_by.username }}
+                            <br><span class="text-slate-400">{{ order.resolved_at|date:"d M, h:i A" }}</span>
+                        {% else %}
+                            <span class="text-slate-300">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="px-6 py-12 text-center">
+                        <div class="w-14 h-14 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400"><i class="fas fa-inbox text-lg"></i></div>
+                        <p class="text-slate-500 font-medium">No orders found</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

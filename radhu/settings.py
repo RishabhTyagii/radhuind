@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     "cycletyres",
     'tallysync',
     "hrms.apps.HrmsConfig",
+    'accounts',
+    'orders',
 ]
 
 MIDDLEWARE = [
@@ -54,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'accounts.middleware.PageAccessMiddleware',
 ]
 
 ROOT_URLCONF = 'radhu.urls'
@@ -85,6 +88,10 @@ WSGI_APPLICATION = 'radhu.wsgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+									
+
+
 
 
 DATABASES = {

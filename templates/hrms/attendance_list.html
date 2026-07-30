@@ -28,9 +28,14 @@
             <a href="{% url 'attendance_list' %}" class="text-xs text-slate-500 hover:underline">Reset</a>
         </form>
 
-        <a href="{% url 'attendance_add' %}" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow flex items-center gap-2">
-            <i class="fa-solid fa-calendar-plus"></i> Mark Attendance
-        </a>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'bulk_attendance' %}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow flex items-center gap-2">
+                <i class="fa-solid fa-users-gear"></i> Bulk Attendance Grid
+            </a>
+            <a href="{% url 'attendance_add' %}" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow flex items-center gap-2">
+                <i class="fa-solid fa-calendar-plus"></i> Single Entry
+            </a>
+        </div>
     </div>
 
     <!-- Attendance Table -->

@@ -1,0 +1,128 @@
+{% extends 'cycletube/base.html' %}
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+        <h2 class="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+            <a href="{% url 'my_orders' %}" class="text-slate-400 hover:text-indigo-600 transition-colors"><i class="fas fa-arrow-left text-lg"></i></a>
+            Place New Order
+        </h2>
+        <p class="text-sm text-slate-500 mt-1 ml-8">Select party, deadline, then enter quantities.</p>
+    </div>
+</div>
+
+<form method="POST">
+{% csrf_token %}
+
+<!-- Order Header Card -->
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-5">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Party <span class="text-red-500">*</span></label>
+            <select name="party_id" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 shadow-sm" required>
+                <option value="">-- Select Party --</option>
+                {% for party in parties %}
+                    <option value="{{ party.id }}">{{ party.name }}</option>
+                {% endfor %}
+            </select>
+            {% if not parties %}
+            <p class="mt-1 text-xs text-amber-600"><i class="fas fa-exclamation-triangle mr-1"></i> No parties saved. <a href="{% url 'my_orders' %}" class="underline">Add one first.</a></p>
+            {% endif %}
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Deadline <span class="text-slate-400 font-normal">(optional)</span></label>
+            <input type="date" name="deadline" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 shadow-sm">
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Notes <span class="text-slate-400 font-normal">(optional)</span></label>
+            <input type="text" name="notes" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 shadow-sm" placeholder="Any remarks...">
+        </div>
+    </div>
+</div>
+
+<!-- Legend -->
+<div class="flex flex-wrap gap-3 mb-4 text-sm font-medium">
+    <span class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-blue-700"><span class="w-3 h-3 rounded-full bg-blue-400 inline-block"></span> Auto Tyre</span>
+    <span class="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-700"><span class="w-3 h-3 rounded-full bg-emerald-400 inline-block"></span> Cycle Tube</span>
+    <span class="flex items-center gap-2 px-3 py-1.5 bg-violet-50 border border-violet-200 rounded-lg text-violet-700"><span class="w-3 h-3 rounded-full bg-violet-400 inline-block"></span> Cycle Tyre</span>
+    <span class="ml-auto flex items-center gap-3 text-xs text-slate-500">
+        <span><span class="font-semibold text-slate-600">Total</span> = Warehouse stock</span>
+        <span class="text-blue-500"><span class="font-semibold">Mine</span> = Your pending orders</span>
+        <span class="text-rose-500"><span class="font-semibold">Others</span> = Other employees</span>
+        <span class="text-emerald-600 font-semibold">Available</span>
+    </span>
+</div>
+
+<!-- Stock + Order Table -->
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+            <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200 sticky top-0">
+                <tr>
+                    <th class="px-5 py-3.5 font-semibold">Item</th>
+                    <th class="px-4 py-3.5 font-semibold text-center">Category</th>
+                    <th class="px-4 py-3.5 font-semibold text-center">Total Stock</th>
+                    <th class="px-4 py-3.5 font-semibold text-center text-blue-600">Mine</th>
+                    <th class="px-4 py-3.5 font-semibold text-center text-rose-500">Others</th>
+                    <th class="px-4 py-3.5 font-semibold text-center text-emerald-700">Available</th>
+                    <th class="px-4 py-3.5 font-semibold text-center w-32">Order Qty</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for row in stock_data %}
+                <tr class="hover:opacity-90 transition-all
+                    {% if row.category == 'auto_tyre' %}bg-blue-50/40{% elif row.category == 'cycle_tube' %}bg-emerald-50/40{% else %}bg-violet-50/40{% endif %}">
+                    
+                    <td class="px-5 py-3.5 font-medium
+                        {% if row.category == 'auto_tyre' %}text-blue-800{% elif row.category == 'cycle_tube' %}text-emerald-800{% else %}text-violet-800{% endif %}">
+                        {{ row.display }}
+                    </td>
+
+                    <td class="px-4 py-3.5 text-center">
+                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold
+                            {% if row.category == 'auto_tyre' %}bg-blue-100 text-blue-700 border border-blue-200
+                            {% elif row.category == 'cycle_tube' %}bg-emerald-100 text-emerald-700 border border-emerald-200
+                            {% else %}bg-violet-100 text-violet-700 border border-violet-200{% endif %}">
+                            {{ row.category_label }}
+                        </span>
+                    </td>
+
+                    <td class="px-4 py-3.5 text-center font-medium text-slate-600">{{ row.total_stock }}</td>
+                    <td class="px-4 py-3.5 text-center font-medium text-blue-600">{{ row.my_orders }}</td>
+                    <td class="px-4 py-3.5 text-center font-medium text-rose-500">{{ row.other_orders }}</td>
+                    
+                    <td class="px-4 py-3.5 text-center">
+                        <span class="text-base font-bold {% if row.available > 0 %}text-emerald-600{% else %}text-rose-500{% endif %}">
+                            {{ row.available }}
+                        </span>
+                    </td>
+
+                    <td class="px-3 py-2.5 text-center">
+                        <input type="number" name="{{ row.id }}"
+                            class="w-full px-2 py-2 border rounded-lg text-center outline-none shadow-sm focus:ring-2 transition-colors
+                            {% if row.category == 'auto_tyre' %}border-blue-200 focus:ring-blue-400 bg-blue-50
+                            {% elif row.category == 'cycle_tube' %}border-emerald-200 focus:ring-emerald-400 bg-emerald-50
+                            {% else %}border-violet-200 focus:ring-violet-400 bg-violet-50{% endif %}"
+                            min="0" placeholder="0" {% if row.available <= 0 %}title="Out of stock"{% endif %}>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-6 py-12 text-center text-slate-500">
+                        <i class="fas fa-box-open text-2xl mb-2 block text-slate-300"></i>
+                        No active stock items found across any category.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Actions -->
+    <div class="p-5 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3">
+        <a href="{% url 'my_orders' %}" class="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors shadow-sm">Cancel</a>
+        <button type="submit" class="px-7 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-lg transition-all shadow-md flex items-center gap-2">
+            <i class="fas fa-check-circle"></i> Submit Order
+        </button>
+    </div>
+</form>
+{% endblock %}

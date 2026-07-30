@@ -429,35 +429,89 @@ def sync_log(request):
 
 @login_required
 def map_pending_item(request, pk):
-    """Inline 'map & sync' dropdown+button sitting right next to a pending
-    row: creates the mapping for this item name AND immediately tries to
-    resolve it (plus any other pending items sharing that same name)."""
+    """Inline 'map & sync' dropdown+button sitting right next to a pending row:
+    Supports:
+      - 'permanent' (default): creates/updates TallyItemMapping AND resolves pending item(s)
+      - 'one_time': resolves this pending item NOW & deducts stock WITHOUT saving permanent mapping
+    """
     pending = get_object_or_404(TallyPendingItem, pk=pk)
 
     if request.method != "POST":
         return redirect("tally_sync_log")
 
     item_choice = request.POST.get("item_choice", "")
+    mapping_type = request.POST.get("mapping_type", "permanent").strip()
+
     if ":" not in item_choice:
         messages.error(request, "Pehle dropdown se ek item select karo.")
         return redirect("tally_sync_log")
 
-    module, item_id = item_choice.split(":", 1)
-    TallyItemMapping.objects.update_or_create(
-        tally_item_name=pending.tally_item_name,
-        defaults={"module": module, "item_id": int(item_id)},
-    )
+    module, item_id_str = item_choice.split(":", 1)
+    try:
+        item_id = int(item_id_str)
+    except ValueError:
+        messages.error(request, "Invalid item selected.")
+        return redirect("tally_sync_log")
 
-    resolved = retry_pending_items(tally_item_name=pending.tally_item_name)
-    if resolved:
-        messages.success(
-            request,
-            f"'{pending.tally_item_name}' map ho gaya — {resolved} pending item turant resolve ho gaya, stock update ho gaya!"
+    if mapping_type == "one_time":
+        # -------------------------------------------------------------
+        # ONE-TIME RESOLVE (This time only — no permanent mapping saved)
+        # -------------------------------------------------------------
+        from stock.models import TyreItem
+        from cycletube.models import CycleTubeItem
+        from cycletyres.models import CycleTyreItem
+
+        target_item = None
+        if module == "tyre":
+            target_item = TyreItem.objects.filter(pk=item_id).first()
+        elif module == "tube":
+            target_item = CycleTubeItem.objects.filter(pk=item_id).first()
+        elif module == "cycletyre":
+            target_item = CycleTyreItem.objects.filter(pk=item_id).first()
+
+        if not target_item:
+            messages.error(request, "Selected item is invalid or was deleted.")
+            return redirect("tally_sync_log")
+
+        ok, msg = _reduce_stock_for_item(
+            module, target_item, pending.qty,
+            pending.voucher_number, pending.voucher_date, pending.party_name,
         )
+        if ok:
+            pending.resolved = True
+            pending.resolved_at = timezone.now()
+            pending.save(update_fields=["resolved", "resolved_at"])
+            TallySyncLog.objects.create(
+                invoice=pending.invoice, level="info",
+                message=f"1-Time Sync (This time only): '{pending.tally_item_name}' x{pending.qty} mapped to {target_item}. Stock deducted without saving permanent mapping."
+            )
+            _maybe_mark_invoice_synced(pending.invoice)
+            messages.success(
+                request,
+                f"⚡ '{pending.tally_item_name}' x{pending.qty} is bar ke liye resolve ho gaya aur stock minus ho gaya! (Permanent mapping nahi bani)."
+            )
+        else:
+            messages.error(request, msg)
+
     else:
-        messages.warning(
-            request,
-            f"'{pending.tally_item_name}' map to ho gaya, lekin stock abhi bhi kam hai — production badhne pe automatic resolve ho jayega."
+        # -------------------------------------------------------------
+        # PERMANENT MAPPING (Save mapping rule + sync stock)
+        # -------------------------------------------------------------
+        TallyItemMapping.objects.update_or_create(
+            tally_item_name=pending.tally_item_name,
+            defaults={"module": module, "item_id": item_id},
         )
+
+        resolved = retry_pending_items(tally_item_name=pending.tally_item_name)
+        if resolved:
+            messages.success(
+                request,
+                f"📌 '{pending.tally_item_name}' permanent map ho gaya — {resolved} pending item turant resolve ho gaya, stock update ho gaya!"
+            )
+        else:
+            messages.warning(
+                request,
+                f"📌 '{pending.tally_item_name}' permanent map ho gaya, lekin stock abhi kam hai."
+            )
 
     return redirect("tally_sync_log")

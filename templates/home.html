@@ -143,6 +143,7 @@
     <!-- Module Grid -->
     <div class="module-grid">
         <!-- Auto Tyre Module -->
+        {% if user.is_superuser or 'dashboard' in user.profile.allowed_pages %}
         <a href="{% url 'dashboard' %}" class="module-card">
             <div>
                 <span class="module-icon">🛞</span>
@@ -151,8 +152,10 @@
             </div>
             <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
         </a>
+        {% endif %}
 
         <!-- Cycle Tube Module -->
+        {% if user.is_superuser or 'tube_dashboard' in user.profile.allowed_pages %}
         <a href="{% url 'tube_dashboard' %}" class="module-card">
             <div>
                 <span class="module-icon">🚲</span>
@@ -161,8 +164,10 @@
             </div>
             <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
         </a>
+        {% endif %}
 
         <!-- Cycle Tyre Module -->
+        {% if user.is_superuser or 'cycletyre_dashboard' in user.profile.allowed_pages %}
         <a href="{% url 'cycletyre_dashboard' %}" class="module-card">
             <div>
                 <span class="module-icon">🛞</span>
@@ -171,8 +176,10 @@
             </div>
             <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
         </a>
+        {% endif %}
 
         <!-- Raw Materials Module -->
+        {% if user.is_superuser or 'raw_dashboard' in user.profile.allowed_pages %}
         <a href="{% url 'raw_dashboard' %}" class="module-card">
             <div>
                 <span class="module-icon">🏗️</span>
@@ -181,8 +188,10 @@
             </div>
             <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
         </a>
+        {% endif %}
 
         <!-- HRMS Module -->
+        {% if user.is_superuser or 'hr_dashboard' in user.profile.allowed_pages %}
         <a href="{% url 'hr_dashboard' %}" class="module-card">
             <div>
                 <span class="module-icon">👥</span>
@@ -191,8 +200,10 @@
             </div>
             <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
         </a>
+        {% endif %}
 
         <!-- Tally Sync Module -->
+        {% if user.is_superuser or 'tally_sales_summary' in user.profile.allowed_pages %}
         <a href="{% url 'tally_sales_summary' %}" class="module-card">
             <div>
                 <span class="module-icon">🧾</span>
@@ -201,6 +212,43 @@
             </div>
             <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
         </a>
+        {% endif %}
+
+        {% if 'my_orders' in user.profile.allowed_pages or user.is_superuser %}
+        <!-- My Orders Module -->
+        <a href="{% url 'my_orders' %}" class="module-card">
+            <div>
+                <span class="module-icon">🛒</span>
+                <div class="module-title">My Orders</div>
+                <div class="module-desc">Place orders, Manage parties</div>
+            </div>
+            <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
+        </a>
+        {% endif %}
+
+        {% if 'admin_orders' in user.profile.allowed_pages or user.is_superuser %}
+        <!-- Admin Orders Module -->
+        <a href="{% url 'admin_orders' %}" class="module-card">
+            <div>
+                <span class="module-icon">📋</span>
+                <div class="module-title">Admin Orders</div>
+                <div class="module-desc">View all employee orders</div>
+            </div>
+            <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
+        </a>
+        {% endif %}
+
+        {% if 'manage_users' in user.profile.allowed_pages or user.is_superuser %}
+        <!-- Users Management Module -->
+        <a href="{% url 'manage_users' %}" class="module-card">
+            <div>
+                <span class="module-icon">👥</span>
+                <div class="module-title">Manage Users</div>
+                <div class="module-desc">Access Control, Create Users</div>
+            </div>
+            <span class="module-badge"><i class="fas fa-arrow-right mr-1"></i> Open</span>
+        </a>
+        {% endif %}
 
     </div>
 </div>

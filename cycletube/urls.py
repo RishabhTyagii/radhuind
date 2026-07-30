@@ -9,4 +9,5 @@ urlpatterns = [
     path("adjustment/add/", views.add_adjustment, name="tube_add_adjustment"),
     path("entries/", views.entries_log, name="tube_entries_log"),
     path("report/monthly/", views.monthly_report, name="tube_monthly_report"),
+    path("summary/", views.production_summary, name="tube_production_summary"),
 ]
