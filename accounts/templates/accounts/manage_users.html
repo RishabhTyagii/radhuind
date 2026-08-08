@@ -5,7 +5,7 @@
 
 {% block content %}
 <style>
-    /* --- Manage Users - Premium PyQt Style --- */
+    /* --- Manage Users - Ultra Premium PyQt Style --- */
     .users-container {
         padding: 20px 0;
     }
@@ -27,18 +27,20 @@
     .page-header-icon {
         width: 40px;
         height: 40px;
-        background: #f1f5f9;
-        border-radius: 8px;
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 18px;
         color: #475569;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
     }
     .page-header h1 {
-        font-size: 22px;
-        font-weight: 600;
+        font-size: 24px;
+        font-weight: 700;
         color: #1a1f2b;
+        letter-spacing: -0.3px;
     }
     .page-header .subtitle {
         font-size: 13px;
@@ -49,40 +51,86 @@
     .page-header-actions {
         display: flex;
         gap: 12px;
+        flex-wrap: wrap;
     }
 
-    /* Create Button */
+    /* Create Button - Premium Gradient */
     .btn-create {
         padding: 10px 24px;
-        background: #16a34a;
+        background: linear-gradient(135deg, #10b981, #059669);
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         color: white;
-        font-weight: 500;
+        font-weight: 600;
         font-size: 14px;
         cursor: pointer;
-        transition: all 0.15s ease;
+        transition: all 0.2s ease;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
     }
     .btn-create:hover {
-        background: #15803d;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+    }
+    .btn-create:active {
+        transform: scale(0.97);
+    }
+
+    /* Live Search */
+    .search-wrapper {
+        position: relative;
+        min-width: 240px;
+    }
+    .search-input {
+        width: 100%;
+        padding: 10px 14px 10px 40px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 14px;
+        transition: all 0.15s ease;
+        outline: none;
+        background: #f8fafc;
+        color: #1e293b;
+    }
+    .search-input:focus {
+        border-color: #3b82f6;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .search-input::placeholder {
+        color: #9ca3af;
+    }
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: 14px;
+        transition: all 0.15s ease;
+    }
+    .search-wrapper:focus-within .search-icon {
+        color: #3b82f6;
     }
 
     /* Messages */
     .message-box {
-        padding: 12px 16px;
-        border-radius: 8px;
+        padding: 12px 18px;
+        border-radius: 10px;
         font-size: 14px;
         margin-bottom: 16px;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         border: 1px solid;
+        animation: slideDown 0.3s ease;
+    }
+    @keyframes slideDown {
+        0% { opacity: 0; transform: translateY(-12px); }
+        100% { opacity: 1; transform: translateY(0); }
     }
     .message-box.success {
         background: #f0fdf4;
@@ -102,17 +150,17 @@
 
     /* Table Container - Premium Glass */
     .table-container {
-        background: rgba(255, 255, 255, 0.92);
+        background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(8px);
-        border: 1px solid #e9edf2;
-        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 16px;
         overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         transition: all 0.2s ease;
     }
     .table-container:hover {
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-        border-color: #d0d7e0;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        border-color: rgba(255, 255, 255, 0.5);
     }
 
     /* Table Wrapper */
@@ -125,11 +173,11 @@
     }
     .table-wrapper::-webkit-scrollbar-track {
         background: #f1f5f9;
-        border-radius: 4px;
+        border-radius: 6px;
     }
     .table-wrapper::-webkit-scrollbar-thumb {
         background: #cbd5e1;
-        border-radius: 4px;
+        border-radius: 6px;
     }
 
     /* Table */
@@ -137,84 +185,132 @@
         width: 100%;
         min-width: 600px;
         border-collapse: collapse;
-        font-size: 13px;
+        font-size: 14px;
     }
     .users-table thead th {
-        padding: 12px 16px;
+        padding: 14px 18px;
         text-align: left;
         font-weight: 600;
-        color: #6b7280;
+        color: #64748b;
         background: #f8fafc;
-        border-bottom: 2px solid #e9edf2;
+        border-bottom: 2px solid #e2e8f0;
         font-size: 12px;
         text-transform: uppercase;
-        letter-spacing: 0.4px;
+        letter-spacing: 0.5px;
         white-space: nowrap;
     }
     .users-table tbody td {
-        padding: 10px 16px;
+        padding: 12px 18px;
         border-bottom: 1px solid #f1f5f9;
         white-space: nowrap;
+        transition: all 0.1s ease;
     }
     .users-table tbody tr {
-        transition: all 0.1s ease;
+        transition: all 0.15s ease;
     }
     .users-table tbody tr:hover {
         background: #f8fafc;
+        transform: scale(1.002);
     }
     .users-table tbody tr:last-child td {
         border-bottom: none;
     }
 
-    /* Superuser Badge */
+    /* User Avatar */
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+
+    /* Badges */
     .badge-superuser {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        padding: 2px 12px;
+        gap: 6px;
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        background: #fef3c7;
+        color: #d97706;
+        border: 1px solid #fcd34d;
+    }
+    .badge-superuser i {
+        font-size: 12px;
+    }
+
+    .badge-normal {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 14px;
         border-radius: 20px;
         font-size: 11px;
         font-weight: 500;
-        background: #fef3c7;
-        color: #d97706;
+        background: #f1f5f9;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
     }
-    .badge-superuser i {
+    .badge-normal i {
         font-size: 12px;
     }
 
     /* Action Buttons */
     .btn-edit {
         padding: 6px 16px;
-        background: #3b82f6;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
         border: none;
-        border-radius: 6px;
+        border-radius: 8px;
         color: white;
         font-size: 12px;
         font-weight: 500;
-        cursor: pointer;
         transition: all 0.15s ease;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
+        box-shadow: 0 2px 6px rgba(59, 130, 246, 0.15);
     }
     .btn-edit:hover {
-        background: #2563eb;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+    }
+    .btn-edit:active {
+        transform: scale(0.95);
     }
 
     /* Empty State */
     .empty-state {
-        padding: 40px 20px;
+        padding: 60px 20px;
         text-align: center;
-        color: #9ca3af;
+        color: #94a3b8;
     }
-    .empty-state i {
-        font-size: 40px;
-        opacity: 0.3;
-        display: block;
-        margin-bottom: 8px;
+    .empty-state .icon-wrap {
+        width: 72px;
+        height: 72px;
+        background: #f1f5f9;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        border: 2px dashed #cbd5e1;
+    }
+    .empty-state .icon-wrap i {
+        font-size: 28px;
+        color: #94a3b8;
+    }
+    .empty-state p {
+        color: #64748b;
     }
 
     /* Responsive */
@@ -230,13 +326,20 @@
             width: 100%;
             justify-content: center;
         }
+        .search-wrapper {
+            width: 100%;
+        }
         .page-header h1 {
             font-size: 20px;
         }
         .users-table thead th,
         .users-table tbody td {
-            padding: 8px 12px;
-            font-size: 12px;
+            padding: 10px 14px;
+            font-size: 13px;
+        }
+        .btn-edit {
+            width: 100%;
+            justify-content: center;
         }
     }
 </style>
@@ -246,7 +349,7 @@
     <div class="page-header">
         <div class="page-header-left">
             <div class="page-header-icon">
-                <i class="fas fa-users"></i>
+                <i class="fas fa-users-cog"></i>
             </div>
             <div>
                 <h1>Manage Users</h1>
@@ -254,8 +357,15 @@
             </div>
         </div>
         <div class="page-header-actions">
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" 
+                       id="liveSearch" 
+                       placeholder="Search username, ID, role..."
+                       class="search-input">
+            </div>
             <a href="{% url 'create_user' %}" class="btn-create">
-                <i class="fas fa-user-plus"></i> Create New User
+                <i class="fas fa-user-plus"></i> Create User
             </a>
         </div>
     </div>
@@ -273,41 +383,56 @@
     <!-- Table -->
     <div class="table-container">
         <div class="table-wrapper">
-            <table class="users-table">
+            <table class="users-table" id="users-table">
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Username</th>
-                        <th>Superuser</th>
+                        <th>User</th>
+                        <th>Role</th>
                         <th class="text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="users-body">
                     {% for user_obj in users %}
-                    <tr>
-                        <td class="text-slate-500">#{{ user_obj.id }}</td>
-                        <td class="font-medium">{{ user_obj.username }}</td>
+                    <tr class="user-row"
+                        data-id="{{ user_obj.id }}"
+                        data-username="{{ user_obj.username|lower }}"
+                        data-role="{% if user_obj.is_superuser %}superuser{% else %}user{% endif %}">
+                        <td class="text-slate-500 font-mono">#{{ user_obj.id }}</td>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <div class="user-avatar">{{ user_obj.username|make_list|first|upper }}</div>
+                                <span class="font-medium text-slate-800">{{ user_obj.username }}</span>
+                            </div>
+                        </td>
                         <td>
                             {% if user_obj.is_superuser %}
                                 <span class="badge-superuser">
-                                    <i class="fas fa-star"></i> Yes
+                                    <i class="fas fa-crown"></i> Superuser
                                 </span>
                             {% else %}
-                                <span class="text-slate-400">No</span>
+                                <span class="badge-normal">
+                                    <i class="fas fa-user"></i> User
+                                </span>
                             {% endif %}
                         </td>
                         <td class="text-right">
                             <a href="{% url 'edit_user' user_obj.id %}" class="btn-edit">
-                                <i class="fas fa-edit"></i> Edit / Permissions
+                                <i class="fas fa-pen"></i> Edit
                             </a>
                         </td>
                     </tr>
                     {% empty %}
-                    <tr>
+                    <tr id="empty-row">
                         <td colspan="4" class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <p class="text-base">No users found.</p>
-                            <p class="text-sm text-slate-400">Create a new user to get started.</p>
+                            <div class="icon-wrap">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <p class="font-medium text-lg">No users found</p>
+                            <p class="text-sm mt-1">Create a new user to get started.</p>
+                            <a href="{% url 'create_user' %}" class="btn-create mt-4">
+                                <i class="fas fa-user-plus"></i> Create First User
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -330,6 +455,41 @@ document.addEventListener('DOMContentLoaded', function() {
             card.style.transform = 'translateY(0)';
         }, 100 + (index * 120));
     });
+
+    // Real-time Live Search
+    const searchInput = document.getElementById('liveSearch');
+    const rows = document.querySelectorAll('.user-row');
+    const emptyRow = document.getElementById('empty-row');
+
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const id = row.dataset.id || '';
+                const username = row.dataset.username || '';
+                const role = row.dataset.role || '';
+                
+                const searchData = `${id} ${username} ${role}`;
+
+                if (searchTerm === '' || searchData.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            if (emptyRow) {
+                if (visibleCount === 0 && rows.length > 0) {
+                    emptyRow.style.display = '';
+                } else {
+                    emptyRow.style.display = 'none';
+                }
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
